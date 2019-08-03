@@ -79,12 +79,20 @@ class _PEBRAppConsoleState extends State<PEBRAppConsole> {
                 }).toList(),
               ),
         floatingActionButton: FloatingActionButton(
-          onPressed: _showSavePanel,
-          tooltip: 'Download',
-          child: Icon(Icons.cloud_download),
+          onPressed: _areUsersSelected ? _showSavePanel : null,
+          tooltip: 'Download Selected',
+          child: Icon(
+            Icons.cloud_download,
+            color: _areUsersSelected ? null : Colors.blueGrey,
+          ),
+          backgroundColor: _areUsersSelected ? null : Colors.grey,
         ),
       ),
     );
+  }
+
+  bool get _areUsersSelected {
+    return _selectedUsers.values.any((final val) => val);
   }
 
   void _showSavePanel() {
