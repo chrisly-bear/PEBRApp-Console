@@ -22,6 +22,7 @@ class _PEBRAppConsoleState extends State<PEBRAppConsole> {
   bool _isLoading = true;
   List<String> _pebraUsers;
   final Map<String, bool> _selectedUsers = {};
+  bool _selectMode = false;
 
   @override
   void initState() {
@@ -58,7 +59,7 @@ class _PEBRAppConsoleState extends State<PEBRAppConsole> {
                     margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
                     child: ListTile(
                       leading: Icon(Icons.person),
-                      trailing: Checkbox(
+                      trailing: !_selectMode ? null : Checkbox(
                         onChanged: (final value) {
                           setState(() {
                             _selectedUsers[pebraUser] = value;
@@ -69,9 +70,15 @@ class _PEBRAppConsoleState extends State<PEBRAppConsole> {
                       subtitle: Text(pebraUser),
                       title: Text('username'),
                       selected: _selectedUsers[pebraUser] ?? false,
-                      onTap: () {
+                      onTap: !_selectMode ? null : () {
                         setState(() {
                           _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
+                        });
+                      },
+                      onLongPress: _selectMode ? null : () {
+                        setState(() {
+                          _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
+                          _selectMode = true;
                         });
                       },
                     ),
