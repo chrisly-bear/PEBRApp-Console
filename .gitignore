@@ -15,3 +15,4 @@ packages
 pubspec.lock
 .dart_tool/flutter_build
 flutter_export_environment.sh
+Flutter-Generated.xcconfig
