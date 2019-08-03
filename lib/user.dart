@@ -4,10 +4,10 @@ import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
 class User {
 
   /// Constructor
-  User({this.username, this.firstname, this.lastname, this.backupFiles, this.dataFiles, this.passwordFiles}) {
-    backupFiles = [];
-    dataFiles = [];
-    passwordFiles = [];
+  User({this.username, this.firstname, this.lastname, List<SwitchDoc> backupFiles, List<SwitchDoc> dataFiles, List<SwitchDoc> passwordFiles}) {
+    this.backupFiles = backupFiles ?? [];
+    this.dataFiles = dataFiles ?? [];
+    this.passwordFiles = passwordFiles ?? [];
   }
 
   String username;

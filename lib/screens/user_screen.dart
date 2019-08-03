@@ -22,6 +22,9 @@ class _UserScreenState extends State<UserScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Text('Backup documents: ${widget._user.backupFiles?.length}'),
+            Text('Excel documents: ${widget._user.dataFiles?.length}'),
+            Text('Password documents: ${widget._user.passwordFiles?.length}'),
             RaisedButton(
               onPressed: () {},
               child: Text('Reset PIN Code'),

@@ -55,7 +55,7 @@ Future<List<User>> getAllPEBRAppUsers() async {
     final username = switchDoc.docName;
     final existingUser = users.lookup(User(username: username));
     if (existingUser != null) {
-      existingUser.dataFiles.add(switchDoc);
+      existingUser.passwordFiles.add(switchDoc);
     } else {
       users.add(User(
         username: username,
