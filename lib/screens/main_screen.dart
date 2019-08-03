@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_chooser/file_chooser.dart';
+import 'package:pebrapp_console/exceptions.dart';
 import 'package:pebrapp_console/screens/user_screen.dart';
 import 'package:pebrapp_console/user.dart';
 import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
@@ -17,12 +18,28 @@ class _MainScreenState extends State<MainScreen> {
   List<User> _pebraUsers;
   Map<User, bool> _selectedUsers = {};
   bool _selectMode = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
     getAllPEBRAppUsers().then((result) {
       setState(() {
         _pebraUsers = result;
+        _isLoading = false;
+      });
+    })
+    .catchError((e, s) {
+      switch (e.runtimeType) {
+        case SWITCHLoginFailedException:
+          _errorMessage = 'Login to SWITCHtoolbox failed\n(wrong credentials?)';
+          break;
+        case SocketException:
+          _errorMessage = 'Connection to SWITCHtoolbox failed\n(no internet connection?)';
+          break;
+        default:
+          _errorMessage = 'An unknown error occurred:\n$e';
+      }
+      setState(() {
         _isLoading = false;
       });
     });
@@ -37,7 +54,9 @@ class _MainScreenState extends State<MainScreen> {
         ),
         body: _isLoading
             ? Center(child: CircularProgressIndicator())
-            : buildUserList(context),
+            : _errorMessage.isNotEmpty
+              ? Center(child: Text(_errorMessage, textAlign: TextAlign.center))
+              : buildUserList(context),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
