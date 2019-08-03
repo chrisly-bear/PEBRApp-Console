@@ -1,0 +1,22 @@
+PODS:
+  - file_chooser (0.0.2):
+    - FlutterMacOS
+  - FlutterMacOS (1.0.0)
+
+DEPENDENCIES:
+  - file_chooser (from `Flutter/ephemeral/.symlinks/plugins/file_chooser/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64`)
+
+EXTERNAL SOURCES:
+  file_chooser:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_chooser/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64
+
+SPEC CHECKSUMS:
+  file_chooser: 63ad990f95e224777292e0e8892f8c38d7992357
+  FlutterMacOS: a0cd115f6cc6d3a91b8e3fb792e5babf85bcfee1
+
+PODFILE CHECKSUM: 8e22ef6b498b5efcd617873b5b5fe67bc84c66ed
+
+COCOAPODS: 1.6.1
