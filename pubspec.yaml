@@ -1,5 +1,6 @@
 name: pebrapp_console
 description: Administrative tool for PEBRApp.
+version: 1.0.0+1
 
 environment:
   sdk: '>=2.2.2 <3.0.0'
@@ -11,8 +12,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  file_chooser:
-    path: plugins/file_chooser
   html: ^0.13.4+1
   http: ^0.12.0+2
 

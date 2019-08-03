@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_chooser/file_chooser.dart';
 import 'package:pebrapp_console/screens/user_screen.dart';
 import 'package:pebrapp_console/user.dart';
 import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
@@ -131,15 +130,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _showSavePanel() {
-    showSavePanel((result, paths) {
-      print(result);
-      print(paths);
-      if (result == FileChooserResult.ok) {
-        for (final p in paths) {
-          File(p).writeAsStringSync('file at "$p"');
-        }
-      }
-    });
+    // TODO: ios/android impelementation
   }
 
 }
