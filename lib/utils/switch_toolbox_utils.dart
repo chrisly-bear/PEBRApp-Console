@@ -5,20 +5,68 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'package:pebrapp_console/config/switch_config.dart';
 import 'package:pebrapp_console/exceptions.dart';
+import 'package:pebrapp_console/user.dart';
 
 
 /// Retrieves a list of all users which have at least one file on SWITCHtoolbox.
-Future<List<String>> getAllPEBRAppUsers() async {
+Future<List<User>> getAllPEBRAppUsers() async {
   final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
   final _mydmsSessionCookie = await _getMydmsSession(_shibsessionCookie);
-  final users = <String>{}
-    ..addAll(await _getAllDocumentsInFolder(SWITCH_TOOLBOX_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie))
-    ..addAll(await _getAllDocumentsInFolder(SWITCH_TOOLBOX_DATA_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie))
-    ..addAll(await _getAllDocumentsInFolder(SWITCH_TOOLBOX_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie));
+  final backupDocs = await _getAllDocumentsInFolder(SWITCH_TOOLBOX_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie);
+  final dataDocs = await _getAllDocumentsInFolder(SWITCH_TOOLBOX_DATA_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie);
+  final passwordDocs = await _getAllDocumentsInFolder(SWITCH_TOOLBOX_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie);
+  final users = <User>{};
+  backupDocs.forEach((switchDoc) {
+    // file name has format 'username_firstname_lastname'
+    final username = switchDoc.docName.split('_')[0];
+    final firstname = switchDoc.docName.split('_')[1];
+    final lastname = switchDoc.docName.split('_')[2];
+    final existingUser = users.lookup(User(username: username));
+    if (existingUser != null) {
+      existingUser.backupFiles.add(switchDoc);
+    } else {
+      users.add(User(
+        username: username,
+        firstname: firstname,
+        lastname: lastname,
+        backupFiles: [switchDoc],
+      ));
+    }
+  });
+  dataDocs.forEach((switchDoc) {
+    // file name has format 'username_firstname_lastname'
+    final username = switchDoc.docName.split('_')[0];
+    final firstname = switchDoc.docName.split('_')[1];
+    final lastname = switchDoc.docName.split('_')[2];
+    final existingUser = users.lookup(User(username: username));
+    if (existingUser != null) {
+      existingUser.dataFiles.add(switchDoc);
+    } else {
+      users.add(User(
+        username: username,
+        firstname: firstname,
+        lastname: lastname,
+        dataFiles: [switchDoc],
+      ));
+    }
+  });
+  passwordDocs.forEach((switchDoc) {
+    // file name has format 'username'
+    final username = switchDoc.docName;
+    final existingUser = users.lookup(User(username: username));
+    if (existingUser != null) {
+      existingUser.dataFiles.add(switchDoc);
+    } else {
+      users.add(User(
+        username: username,
+        passwordFiles: [switchDoc],
+      ));
+    }
+  });
   return users.toList();
 }
 
-Future<List<String>> _getAllDocumentsInFolder(int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
+Future<List<SwitchDoc>> _getAllDocumentsInFolder(int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
 
   // get list of files
   final resp = await http.get(
@@ -26,7 +74,7 @@ Future<List<String>> _getAllDocumentsInFolder(int folderId, String _shibsessionC
     headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
   );
 
-  final docs = <String>[];
+  final docs = <SwitchDoc>[];
   // parse html
   final _doc = parse(resp.body);
   final _tableBody = _doc.querySelector('table[class="folderView"] > tbody');
@@ -37,9 +85,15 @@ Future<List<String>> _getAllDocumentsInFolder(int folderId, String _shibsessionC
   final aElements = _tableBody.getElementsByTagName('a');
 
   for (final a in aElements) {
-    print('${a.text}  ${a.attributes['href']}');
     if (a.text.isNotEmpty) {
-      docs.add(a.text);
+      final relativeLink = a.attributes['href'];
+      final relativeUri = Uri.parse(relativeLink);
+      final switchDocumentId = relativeUri.queryParameters['documentid'];
+      docs.add(SwitchDoc(
+        docName: a.text,
+        docId: int.parse(switchDocumentId),
+        containingFolder: folderId,
+      ));
     }
   }
   return docs;
@@ -347,4 +401,22 @@ Future<String> _getMydmsSession(String shibsessionCookie) async {
   final resp = await req.send();
   final mydmssessionCookie = resp.headers['set-cookie'];
   return mydmssessionCookie;
+}
+
+/// Represents a document on SWITCHtoolbox.
+class SwitchDoc {
+
+  /// Constructor
+  SwitchDoc({this.docName, this.docId, this.containingFolder, this.versions});
+
+  String docName;
+  int docId;
+  int containingFolder;
+  List<int> versions;
+
+  @override
+  bool operator ==(o) => o is SwitchDoc && o.docId == docId;
+
+  @override
+  int get hashCode => docId.hashCode;
 }

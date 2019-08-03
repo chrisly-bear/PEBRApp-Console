@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pebrapp_console/user.dart';
 
 /// User screen which shows all user related information and actions.
 class UserScreen extends StatefulWidget {
   /// Constructor
   const UserScreen(this._user);
-  final String _user;
+  final User _user;
   @override
   _UserScreenState createState() => _UserScreenState();
 }
@@ -14,7 +15,7 @@ class _UserScreenState extends State<UserScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget._user),
+        title: Text(widget._user.username),
       ),
       body: Container(
         width: double.infinity,

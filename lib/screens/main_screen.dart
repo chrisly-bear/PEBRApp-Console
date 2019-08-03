@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_chooser/file_chooser.dart';
 import 'package:pebrapp_console/screens/user_screen.dart';
+import 'package:pebrapp_console/user.dart';
 import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
 
 /// Main screen of the application. Shows a list of all PEBRApp users.
@@ -13,8 +14,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
 
   bool _isLoading = true;
-  List<String> _pebraUsers;
-  Map<String, bool> _selectedUsers = {};
+  List<User> _pebraUsers;
+  Map<User, bool> _selectedUsers = {};
   bool _selectMode = false;
 
   @override
@@ -83,8 +84,8 @@ class _MainScreenState extends State<MainScreen> {
               },
               value: _selectedUsers[pebraUser] ?? false,
             ),
-            subtitle: Text(pebraUser),
-            title: Text('username'),
+            subtitle: Text('${pebraUser.firstname} ${pebraUser.lastname}'),
+            title: Text(pebraUser.username),
             selected: _selectedUsers[pebraUser] ?? false,
             onTap: !_selectMode
               ? () {
@@ -107,7 +108,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  void _pushUserScreen(String user, BuildContext context) {
+  void _pushUserScreen(User user, BuildContext context) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => UserScreen(user)));
   }
 
