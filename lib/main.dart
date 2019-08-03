@@ -21,6 +21,7 @@ class PEBRAppConsole extends StatefulWidget {
 class _PEBRAppConsoleState extends State<PEBRAppConsole> {
   bool _isLoading = true;
   List<String> _pebraUsers;
+  final Map<String, bool> _selectedUsers = {};
 
   @override
   void initState() {
@@ -36,7 +37,8 @@ class _PEBRAppConsoleState extends State<PEBRAppConsole> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'PEBRApp Console',
+      // theme: ThemeData.dark(),
       theme: ThemeData(
         primarySwatch: Colors.blue,
         // See https://github.com/flutter/flutter/wiki/Desktop-shells#fonts
@@ -48,17 +50,30 @@ class _PEBRAppConsoleState extends State<PEBRAppConsole> {
         ),
         body: _isLoading
             ? Center(child: CircularProgressIndicator())
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.start,
+            : ListView(
                 children: _pebraUsers.map((pebraUser) {
                   return Card(
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 5.0, vertical: 5.0),
-                    child: Container(
-                      height: 50.0,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 10.0),
-                      child: Center(child: Text(pebraUser)),
+                    elevation: 2.0,
+                    clipBehavior: Clip.antiAlias,
+                    margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+                    child: ListTile(
+                      leading: Icon(Icons.person),
+                      trailing: Checkbox(
+                        onChanged: (final value) {
+                          setState(() {
+                            _selectedUsers[pebraUser] = value;
+                        });
+                        },
+                        value: _selectedUsers[pebraUser] ?? false,
+                      ),
+                      subtitle: Text(pebraUser),
+                      title: Text('username'),
+                      selected: _selectedUsers[pebraUser] ?? false,
+                      onTap: () {
+                        setState(() {
+                          _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
+                        });
+                      },
                     ),
                   );
                 }).toList(),
