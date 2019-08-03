@@ -1,32 +1,38 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 import 'dart:io';
 
 import 'package:file_chooser/file_chooser.dart';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
+import 'package:pebrapp_console/utils/SwitchToolboxUtils.dart';
 
 void main() {
   // See https://github.com/flutter/flutter/wiki/Desktop-shells#target-platform-override
   debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
 
-  runApp(new MyApp());
+  runApp(PEBRAppConsole());
 }
 
-class MyApp extends StatelessWidget {
+class PEBRAppConsole extends StatefulWidget {
+  @override
+  _PEBRAppConsoleState createState() => _PEBRAppConsoleState();
+}
+
+class _PEBRAppConsoleState extends State<PEBRAppConsole> {
+  bool _isLoading = true;
+  List<String> _pebraUsers;
+
+  @override
+  void initState() {
+    getAllPEBRAppUsers().then((result) {
+      setState(() {
+        _pebraUsers = result;
+        _isLoading = false;
+      });
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,24 +42,37 @@ class MyApp extends StatelessWidget {
         // See https://github.com/flutter/flutter/wiki/Desktop-shells#fonts
         fontFamily: 'Roboto',
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('PEBRApp Console'),
+        ),
+        body: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: _pebraUsers.map((pebraUser) {
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 5.0, vertical: 5.0),
+                    child: Container(
+                      height: 50.0,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 10.0),
+                      child: Center(child: Text(pebraUser)),
+                    ),
+                  );
+                }).toList(),
+              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _showSavePanel,
+          tooltip: 'Download',
+          child: Icon(Icons.cloud_download),
+        ),
+      ),
     );
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
+  void _showSavePanel() {
     showSavePanel((result, paths) {
       print(result);
       print(paths);
@@ -63,36 +82,5 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     });
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
-    );
   }
 }

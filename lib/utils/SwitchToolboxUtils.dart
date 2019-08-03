@@ -6,6 +6,14 @@ import 'package:html/parser.dart' show parse;
 import 'package:pebrapp_console/config/SwitchConfig.dart';
 import 'package:pebrapp_console/exceptions.dart';
 
+
+/// Retrieves a list of all users which have at least one file on SWITCHtoolbox.
+Future<List<String>> getAllPEBRAppUsers() async {
+  // TODO: implement
+  await Future.delayed(Duration(seconds: 1));
+  return ['Malerato Thabane', 'John Doe', 'Luke Skywalker'];
+}
+
 /// Uploads `sourceFile` to SWITCHtoolbox.
 ///
 /// If `filename` is not provided the `sourceFile`'s file name will be used.
