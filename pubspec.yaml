@@ -1,5 +1,5 @@
-name: example_flutter
-description: An example project for flutter-desktop-embedding.
+name: pebrapp_console
+description: Administrative tool for PEBRApp.
 
 environment:
   sdk: '>=2.0.0 <3.0.0'
@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   file_chooser:
     path: plugins/file_chooser
+  html: ^0.13.4+1
+  http: ^0.12.0+2
 
   cupertino_icons: ^0.1.0
 

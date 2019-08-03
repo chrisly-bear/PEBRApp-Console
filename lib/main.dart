@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({Key key, this.title}) : super(key: key);
 
   final String title;
 
@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print(result);
       print(paths);
       if (result == FileChooserResult.ok) {
-        for (String p in paths) {
+        for (final p in paths) {
           File(p).writeAsStringSync('file at "$p"');
         }
       }
