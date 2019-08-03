@@ -9,9 +9,40 @@ import 'package:pebrapp_console/exceptions.dart';
 
 /// Retrieves a list of all users which have at least one file on SWITCHtoolbox.
 Future<List<String>> getAllPEBRAppUsers() async {
-  // TODO: implement
-  await Future.delayed(Duration(seconds: 1));
-  return ['Malerato Thabane', 'John Doe', 'Luke Skywalker'];
+  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+  final _mydmsSessionCookie = await _getMydmsSession(_shibsessionCookie);
+  final users = <String>{}
+    ..addAll(await _getAllDocumentsInFolder(SWITCH_TOOLBOX_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie))
+    ..addAll(await _getAllDocumentsInFolder(SWITCH_TOOLBOX_DATA_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie))
+    ..addAll(await _getAllDocumentsInFolder(SWITCH_TOOLBOX_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmsSessionCookie));
+  return users.toList();
+}
+
+Future<List<String>> _getAllDocumentsInFolder(int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
+
+  // get list of files
+  final resp = await http.get(
+    Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/out/out.ViewFolder.php?folderid=$folderId'),
+    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
+  );
+
+  final docs = <String>[];
+  // parse html
+  final _doc = parse(resp.body);
+  final _tableBody = _doc.querySelector('table[class="folderView"] > tbody');
+  if (_tableBody == null) {
+    // no documents are in SWITCHtoolbox
+    return docs;
+  }
+  final aElements = _tableBody.getElementsByTagName('a');
+
+  for (final a in aElements) {
+    print('${a.text}  ${a.attributes['href']}');
+    if (a.text.isNotEmpty) {
+      docs.add(a.text);
+    }
+  }
+  return docs;
 }
 
 /// Uploads `sourceFile` to SWITCHtoolbox.
