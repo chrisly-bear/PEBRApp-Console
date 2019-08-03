@@ -1,10 +1,7 @@
-import 'dart:io';
-
-import 'package:file_chooser/file_chooser.dart';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
-import 'package:pebrapp_console/utils/SwitchToolboxUtils.dart';
+import 'package:pebrapp_console/screens/main_screen.dart';
 
 void main() {
   // See https://github.com/flutter/flutter/wiki/Desktop-shells#target-platform-override
@@ -13,28 +10,8 @@ void main() {
   runApp(PEBRAppConsole());
 }
 
-class PEBRAppConsole extends StatefulWidget {
-  @override
-  _PEBRAppConsoleState createState() => _PEBRAppConsoleState();
-}
-
-class _PEBRAppConsoleState extends State<PEBRAppConsole> {
-  bool _isLoading = true;
-  List<String> _pebraUsers;
-  Map<String, bool> _selectedUsers = {};
-  bool _selectMode = false;
-
-  @override
-  void initState() {
-    getAllPEBRAppUsers().then((result) {
-      setState(() {
-        _pebraUsers = result;
-        _isLoading = false;
-      });
-    });
-    super.initState();
-  }
-
+/// MaterialApp for PEBRApp Console
+class PEBRAppConsole extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -45,107 +22,7 @@ class _PEBRAppConsoleState extends State<PEBRAppConsole> {
         // See https://github.com/flutter/flutter/wiki/Desktop-shells#fonts
         fontFamily: 'Roboto',
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('PEBRApp Console'),
-        ),
-        body: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : buildUserList(),
-        floatingActionButton: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            if (_selectMode) FloatingActionButton(
-              onPressed: _selectAllUsers,
-              tooltip: 'Select All',
-              child: Icon(Icons.check),
-            ),
-            if (_selectMode) SizedBox(width: 10.0),
-            if (_selectMode) FloatingActionButton(
-              onPressed: _cancelSelection,
-              tooltip: 'Cancel Selection',
-              child: Icon(Icons.close),
-            ),
-            if (_selectMode) SizedBox(width: 10.0),
-            FloatingActionButton(
-              onPressed: _areUsersSelected ? _showSavePanel : null,
-              tooltip: 'Download Selected',
-              child: Icon(
-                Icons.cloud_download,
-                color: _areUsersSelected ? null : Colors.blueGrey,
-              ),
-              backgroundColor: _areUsersSelected ? null : Colors.grey,
-            ),
-          ],
-        ),
-      ),
+      home: MainScreen(),
     );
-  }
-
-  Widget buildUserList() {
-    return ListView(
-      children: _pebraUsers.map((pebraUser) {
-        return Card(
-          elevation: 2.0,
-          clipBehavior: Clip.antiAlias,
-          margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
-          child: ListTile(
-            leading: Icon(Icons.person),
-            trailing: !_selectMode ? null : Checkbox(
-              onChanged: (final value) {
-                setState(() {
-                  _selectedUsers[pebraUser] = value;
-              });
-              },
-              value: _selectedUsers[pebraUser] ?? false,
-            ),
-            subtitle: Text(pebraUser),
-            title: Text('username'),
-            selected: _selectedUsers[pebraUser] ?? false,
-            onTap: !_selectMode ? null : () {
-              setState(() {
-                _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
-              });
-            },
-            onLongPress: _selectMode ? null : () {
-              setState(() {
-                _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
-                _selectMode = true;
-              });
-            },
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  void _selectAllUsers() {
-    _pebraUsers.forEach((final user) {
-      _selectedUsers[user] = true;
-    });
-    setState(() {});
-  }
-
-  void _cancelSelection() {
-    setState(() {
-      _selectedUsers = {};
-      _selectMode = false;
-    });
-  }
-
-  bool get _areUsersSelected {
-    return _selectedUsers.values.any((final val) => val);
-  }
-
-  void _showSavePanel() {
-    showSavePanel((result, paths) {
-      print(result);
-      print(paths);
-      if (result == FileChooserResult.ok) {
-        for (final p in paths) {
-          File(p).writeAsStringSync('file at "$p"');
-        }
-      }
-    });
   }
 }
