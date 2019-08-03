@@ -87,43 +87,48 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget buildUserList(BuildContext context) {
-    return ListView(
-      children: _pebraUsers.map((pebraUser) {
-        return Card(
-          elevation: 2.0,
-          clipBehavior: Clip.antiAlias,
-          margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
-          child: ListTile(
-            leading: Icon(Icons.person),
-            trailing: !_selectMode ? null : Checkbox(
-              onChanged: (final value) {
-                setState(() {
-                  _selectedUsers[pebraUser] = value;
-              });
-              },
-              value: _selectedUsers[pebraUser] ?? false,
-            ),
-            subtitle: Text('${pebraUser.firstname} ${pebraUser.lastname}'),
-            title: Text(pebraUser.username),
-            selected: _selectedUsers[pebraUser] ?? false,
-            onTap: !_selectMode
-              ? () {
-                _pushUserScreen(pebraUser, context);
-              }
-              : () {
-                setState(() {
-                  _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
-                });
-              },
-            onLongPress: _selectMode ? null : () {
+    final _userCards = _pebraUsers.map((pebraUser) {
+      return Card(
+        elevation: 2.0,
+        clipBehavior: Clip.antiAlias,
+        margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+        child: ListTile(
+          leading: Icon(Icons.person),
+          trailing: !_selectMode ? null : Checkbox(
+            onChanged: (final value) {
+              setState(() {
+                _selectedUsers[pebraUser] = value;
+            });
+            },
+            value: _selectedUsers[pebraUser] ?? false,
+          ),
+          subtitle: Text('${pebraUser.firstname} ${pebraUser.lastname}'),
+          title: Text(pebraUser.username),
+          selected: _selectedUsers[pebraUser] ?? false,
+          onTap: !_selectMode
+            ? () {
+              _pushUserScreen(pebraUser, context);
+            }
+            : () {
               setState(() {
                 _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
-                _selectMode = true;
               });
             },
-          ),
-        );
-      }).toList(),
+          onLongPress: _selectMode ? null : () {
+            setState(() {
+              _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
+              _selectMode = true;
+            });
+          },
+        ),
+      );
+    }).toList();
+    return ListView(
+      physics: BouncingScrollPhysics(),
+      children: [
+        ..._userCards,
+        SizedBox(height: 8.0),
+      ],
     );
   }
 
