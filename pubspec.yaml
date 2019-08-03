@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   file_chooser:
-    path: ../plugins/file_chooser
+    path: plugins/file_chooser
 
   cupertino_icons: ^0.1.0
 
