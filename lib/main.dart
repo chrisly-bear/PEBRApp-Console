@@ -21,7 +21,7 @@ class PEBRAppConsole extends StatefulWidget {
 class _PEBRAppConsoleState extends State<PEBRAppConsole> {
   bool _isLoading = true;
   List<String> _pebraUsers;
-  final Map<String, bool> _selectedUsers = {};
+  Map<String, bool> _selectedUsers = {};
   bool _selectMode = false;
 
   @override
@@ -51,51 +51,86 @@ class _PEBRAppConsoleState extends State<PEBRAppConsole> {
         ),
         body: _isLoading
             ? Center(child: CircularProgressIndicator())
-            : ListView(
-                children: _pebraUsers.map((pebraUser) {
-                  return Card(
-                    elevation: 2.0,
-                    clipBehavior: Clip.antiAlias,
-                    margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
-                    child: ListTile(
-                      leading: Icon(Icons.person),
-                      trailing: !_selectMode ? null : Checkbox(
-                        onChanged: (final value) {
-                          setState(() {
-                            _selectedUsers[pebraUser] = value;
-                        });
-                        },
-                        value: _selectedUsers[pebraUser] ?? false,
-                      ),
-                      subtitle: Text(pebraUser),
-                      title: Text('username'),
-                      selected: _selectedUsers[pebraUser] ?? false,
-                      onTap: !_selectMode ? null : () {
-                        setState(() {
-                          _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
-                        });
-                      },
-                      onLongPress: _selectMode ? null : () {
-                        setState(() {
-                          _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
-                          _selectMode = true;
-                        });
-                      },
-                    ),
-                  );
-                }).toList(),
+            : buildUserList(),
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (_selectMode) FloatingActionButton(
+              onPressed: _selectAllUsers,
+              tooltip: 'Select All',
+              child: Icon(Icons.check),
+            ),
+            if (_selectMode) SizedBox(width: 10.0),
+            if (_selectMode) FloatingActionButton(
+              onPressed: _cancelSelection,
+              tooltip: 'Cancel Selection',
+              child: Icon(Icons.close),
+            ),
+            if (_selectMode) SizedBox(width: 10.0),
+            FloatingActionButton(
+              onPressed: _areUsersSelected ? _showSavePanel : null,
+              tooltip: 'Download Selected',
+              child: Icon(
+                Icons.cloud_download,
+                color: _areUsersSelected ? null : Colors.blueGrey,
               ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _areUsersSelected ? _showSavePanel : null,
-          tooltip: 'Download Selected',
-          child: Icon(
-            Icons.cloud_download,
-            color: _areUsersSelected ? null : Colors.blueGrey,
-          ),
-          backgroundColor: _areUsersSelected ? null : Colors.grey,
+              backgroundColor: _areUsersSelected ? null : Colors.grey,
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget buildUserList() {
+    return ListView(
+      children: _pebraUsers.map((pebraUser) {
+        return Card(
+          elevation: 2.0,
+          clipBehavior: Clip.antiAlias,
+          margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+          child: ListTile(
+            leading: Icon(Icons.person),
+            trailing: !_selectMode ? null : Checkbox(
+              onChanged: (final value) {
+                setState(() {
+                  _selectedUsers[pebraUser] = value;
+              });
+              },
+              value: _selectedUsers[pebraUser] ?? false,
+            ),
+            subtitle: Text(pebraUser),
+            title: Text('username'),
+            selected: _selectedUsers[pebraUser] ?? false,
+            onTap: !_selectMode ? null : () {
+              setState(() {
+                _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
+              });
+            },
+            onLongPress: _selectMode ? null : () {
+              setState(() {
+                _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
+                _selectMode = true;
+              });
+            },
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  void _selectAllUsers() {
+    _pebraUsers.forEach((final user) {
+      _selectedUsers[user] = true;
+    });
+    setState(() {});
+  }
+
+  void _cancelSelection() {
+    setState(() {
+      _selectedUsers = {};
+      _selectMode = false;
+    });
   }
 
   bool get _areUsersSelected {
