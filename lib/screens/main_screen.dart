@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_chooser/file_chooser.dart';
 import 'package:pebrapp_console/screens/user_screen.dart';
-import 'package:pebrapp_console/utils/SwitchToolboxUtils.dart';
+import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
 
 /// Main screen of the application. Shows a list of all PEBRApp users.
 class MainScreen extends StatefulWidget {

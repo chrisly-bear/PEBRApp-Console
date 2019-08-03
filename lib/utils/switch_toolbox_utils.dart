@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
-import 'package:pebrapp_console/config/SwitchConfig.dart';
+import 'package:pebrapp_console/config/switch_config.dart';
 import 'package:pebrapp_console/exceptions.dart';
 
 
