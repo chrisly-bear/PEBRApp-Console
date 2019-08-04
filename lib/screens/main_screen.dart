@@ -19,8 +19,11 @@ class _MainScreenState extends State<MainScreen> {
   Map<User, bool> _selectedUsers = {};
   bool _selectMode = false;
   String _errorMessage = '';
+  double _networkProgress = -1.0;
 
   List<User> get _selectedUsersList => _selectedUsers.entries.where((final map) => map.value).map((final map) => map.key).toList();
+
+  bool get _networkProcessing => _networkProgress >= 0.0;
 
   @override
   void initState() {
@@ -61,6 +64,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
         appBar: AppBar(
           title: Text('PEBRApp Users${_areUsersSelected ? ' (${_selectedUsersList.length})' : ''}'),
+          bottom: !_networkProcessing ? null : PreferredSize(child: LinearProgressIndicator(value: _networkProgress), preferredSize: Size(double.infinity, 10.0)),
           actions: [
             if (!_selectMode) _popupMenu(),
             if (_selectMode) _areUsersSelected
@@ -81,20 +85,10 @@ class _MainScreenState extends State<MainScreen> {
                 ),
           ],
         ),
-        body: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : _errorMessage.isEmpty
-              ? buildUserList(context)
-              : Center(child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(_errorMessage, textAlign: TextAlign.center),
-                  RaisedButton(child: Text('Reload'), onPressed: _getUsersFromSwitch),
-                ],
-              )),
+        body: _buildBody(context),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: !_areUsersSelected ? [] : [
+          children: (!_areUsersSelected || _networkProcessing) ? [] : [
             FloatingActionButton(
               onPressed: _deleteSelection,
               tooltip: 'Delete Selected',
@@ -123,7 +117,30 @@ class _MainScreenState extends State<MainScreen> {
       );
   }
 
-  Widget buildUserList(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+    if (_networkProcessing) {
+      return Center(child: Text(
+        'Processing…\n${(100*_networkProgress).toStringAsFixed(1)}%',
+        textAlign: TextAlign.center,
+        style: TextStyle(height: 1.5),
+      ));
+    }
+    if (_errorMessage.isNotEmpty) {
+      return Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(_errorMessage, textAlign: TextAlign.center),
+          RaisedButton(child: Text('Reload'), onPressed: _getUsersFromSwitch),
+        ],
+      ));
+    }
+    return _buildUserList(context);
+  }
+  
+  Widget _buildUserList(BuildContext context) {
     final _userCards = _pebraUsers.map((pebraUser) {
       return Card(
         elevation: 2.0,
@@ -345,8 +362,17 @@ class _MainScreenState extends State<MainScreen> {
       (result, paths) {
         if (result == FileChooserResult.ok) {
           downloadLatestExcelFiles(_selectedUsersList, paths.first).listen((progress) {
-            // TODO: show progress in UI
             print('excel download status: ${(progress*100).round()}%');
+            setState(() {
+              _networkProgress = progress;
+            });
+            if (progress >= 1.0) {
+              Future.delayed(Duration(seconds: 1)).then((dynamic _) {
+                setState(() {
+                  _networkProgress = -1.0; // tell the UI processing is done
+                });
+              });
+            }
           });
         }
       },
