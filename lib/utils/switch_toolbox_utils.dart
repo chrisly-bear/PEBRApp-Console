@@ -66,39 +66,6 @@ Future<List<User>> getAllPEBRAppUsers() async {
   return users.toList();
 }
 
-Future<List<SwitchDoc>> _getAllDocumentsInFolder(int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
-
-  // get list of files
-  final resp = await http.get(
-    Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/out/out.ViewFolder.php?folderid=$folderId'),
-    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
-  );
-
-  final docs = <SwitchDoc>[];
-  // parse html
-  final _doc = parse(resp.body);
-  final _tableBody = _doc.querySelector('table[class="folderView"] > tbody');
-  if (_tableBody == null) {
-    // no documents are in SWITCHtoolbox
-    return docs;
-  }
-  final aElements = _tableBody.getElementsByTagName('a');
-
-  for (final a in aElements) {
-    if (a.text.isNotEmpty) {
-      final relativeLink = a.attributes['href'];
-      final relativeUri = Uri.parse(relativeLink);
-      final switchDocumentId = relativeUri.queryParameters['documentid'];
-      docs.add(SwitchDoc(
-        docName: a.text,
-        docId: int.parse(switchDocumentId),
-        containingFolder: folderId,
-      ));
-    }
-  }
-  return docs;
-}
-
 /// Uploads `sourceFile` to SWITCHtoolbox.
 ///
 /// If `filename` is not provided the `sourceFile`'s file name will be used.
@@ -212,6 +179,39 @@ Future<void> updateFileOnSWITCHtoolbox(File sourceFile, String documentName, {in
   final _resp2Stream = await _req1.send();
   final _resp2 = await http.Response.fromStream(_resp2Stream);
   // TODO: return something to indicate whether the upload was successful or not
+}
+
+Future<List<SwitchDoc>> _getAllDocumentsInFolder(int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
+
+  // get list of files
+  final resp = await http.get(
+    Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/out/out.ViewFolder.php?folderid=$folderId'),
+    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
+  );
+
+  final docs = <SwitchDoc>[];
+  // parse html
+  final _doc = parse(resp.body);
+  final _tableBody = _doc.querySelector('table[class="folderView"] > tbody');
+  if (_tableBody == null) {
+    // no documents are in SWITCHtoolbox
+    return docs;
+  }
+  final aElements = _tableBody.getElementsByTagName('a');
+
+  for (final a in aElements) {
+    if (a.text.isNotEmpty) {
+      final relativeLink = a.attributes['href'];
+      final relativeUri = Uri.parse(relativeLink);
+      final switchDocumentId = relativeUri.queryParameters['documentid'];
+      docs.add(SwitchDoc(
+        docName: a.text,
+        docId: int.parse(switchDocumentId),
+        containingFolder: folderId,
+      ));
+    }
+  }
+  return docs;
 }
 
 /// Finds the full name of the document that starts with [startsWith] in the folder [folderId].
