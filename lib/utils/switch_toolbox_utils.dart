@@ -74,6 +74,9 @@ Future<List<User>> getAllPEBRAppUsers() async {
 /// will be erased if it already exists!
 Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) async* {
 
+  // start with 0%
+  yield 0.0;
+
   var totalFiles = 0;
   for (final u in users) {
     totalFiles += u.dataFiles.length;
@@ -118,6 +121,9 @@ Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) asy
 /// Moves all files associated with the given [users] to their corresponding
 /// archive folder on SWITCHtoolbox.
 Stream<double> archiveUsers(List<User> users) async* {
+
+  // start with 0%
+  yield 0.0;
 
   var totalFiles = 0;
   for (final u in users) {
