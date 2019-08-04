@@ -20,6 +20,8 @@ class _MainScreenState extends State<MainScreen> {
   bool _selectMode = false;
   String _errorMessage = '';
 
+  List<User> get _selectedUsersList => _selectedUsers.entries.where((final map) => map.value).map((final map) => map.key).toList();
+
   @override
   void initState() {
     _getUsersFromSwitch();
@@ -58,7 +60,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('PEBRApp Users'),
+          title: Text('PEBRApp Users${_areUsersSelected ? ' (${_selectedUsersList.length})' : ''}'),
           actions: [
             if (!_selectMode) _popupMenu(),
             if (_selectMode) _areUsersSelected
@@ -141,9 +143,7 @@ class _MainScreenState extends State<MainScreen> {
           title: Text(pebraUser.username),
           selected: _selectedUsers[pebraUser] ?? false,
           onTap: !_selectMode
-            ? () {
-              _pushUserScreen(pebraUser, context);
-            }
+            ? () { _pushUserScreen(pebraUser, context); }
             : () {
               setState(() {
                 _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
@@ -198,7 +198,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _deleteSelection() async {
     await showDialog(context: context, builder: (context) {
-      final selectedList = _selectedUsers.keys.map((u) {
+      final selectedList = _selectedUsersList.map((u) {
         return Padding(
           padding: const EdgeInsets.only(top: 5.0),
           child: Row(
@@ -228,7 +228,7 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
           RaisedButton(
-            child: Text('Delete (${_selectedUsers.length})'),
+            child: Text('Delete (${_selectedUsersList.length})'),
             color: Theme.of(context).buttonTheme.colorScheme.error,
             textColor: Theme.of(context).buttonTheme.colorScheme.onError,
             onPressed: () {
@@ -244,7 +244,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _archiveSelection() async {
     await showDialog(context: context, builder: (context) {
-      final selectedList = _selectedUsers.keys.map((u) {
+      final selectedList = _selectedUsersList.map((u) {
         return Padding(
           padding: const EdgeInsets.only(top: 5.0),
           child: Row(
@@ -273,10 +273,10 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
           RaisedButton(
-            child: Text('Archive (${_selectedUsers.length})'),
+            child: Text('Archive (${_selectedUsersList.length})'),
             textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
             onPressed: () async {
-              archiveUsers(_selectedUsers.keys.toList()).listen((progress) {
+              archiveUsers(_selectedUsersList).listen((progress) {
                 // TODO: show progress in UI
                 print('user archiving status: ${(progress*100).round()}%');
                 if (progress >= 1.0) {
@@ -293,7 +293,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _resetPinForSelection() async {
     await showDialog(context: context, builder: (context) {
-      final selectedList = _selectedUsers.keys.map((u) {
+      final selectedList = _selectedUsersList.map((u) {
         return Padding(
           padding: const EdgeInsets.only(top: 5.0),
           child: Row(
@@ -322,7 +322,7 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
           RaisedButton(
-            child: Text('Reset PIN (${_selectedUsers.length})'),
+            child: Text('Reset PIN (${_selectedUsersList.length})'),
             textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
             onPressed: () {
               // TODO: call the reset PIN method from switch_toolbox_utils.dart
@@ -339,7 +339,7 @@ class _MainScreenState extends State<MainScreen> {
     showSavePanel(
       (result, paths) {
         if (result == FileChooserResult.ok) {
-          downloadLatestExcelFiles(_selectedUsers.keys.toList(), paths.first).listen((progress) {
+          downloadLatestExcelFiles(_selectedUsersList, paths.first).listen((progress) {
             // TODO: show progress in UI
             print('excel download status: ${(progress*100).round()}%');
           });
