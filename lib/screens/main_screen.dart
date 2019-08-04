@@ -335,6 +335,7 @@ class _MainScreenState extends State<MainScreen> {
       (result, paths) {
         if (result == FileChooserResult.ok) {
           downloadLatestExcelFiles(_selectedUsers.keys.toList(), paths.first).listen((progress) {
+            // TODO: show progress in UI
             print('excel download status: ${(progress*100).round()}%');
           });
         }
