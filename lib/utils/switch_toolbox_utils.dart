@@ -235,26 +235,12 @@ Future<void> _archiveDoc(SwitchDoc doc, int archiveFolderId, String _shibsession
   );
 }
 
-// TODO: implement
 Future<void> _deleteDoc(SwitchDoc doc, String _shibsessionCookie, String _mydmsSessionCookie) async {
-//  // upload file
-//  final _req1 = http.MultipartRequest('POST', Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.AddDocument.php'))
-//    ..headers['Cookie'] = _cookieHeaderString
-//    ..files.add(await http.MultipartFile.fromPath('userfile[]', doc.path))
-//    ..fields.addAll({
-//      'name': filename == null ? '${doc.path.split('/').last}' : filename,
-//      'folderid': '$archiveFolderId',
-//      'sequence': '1',
-//    });
-//
-//  // update file
-//  final _req1 = http.MultipartRequest('POST', Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.UpdateDocument.php'))
-//    ..headers['Cookie'] = _cookieHeaderString
-//    ..files.add(await http.MultipartFile.fromPath('userfile', doc.path))
-//    ..fields.addAll({
-//      'documentid': '$docId',
-////      'expires': 'false',
-//    });
+  final resp = await http.post(
+    Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.RemoveDocument.php'),
+    headers: {'Cookie': '$_shibsessionCookie; $_mydmsSessionCookie'},
+    body: {'documentid': '${doc.docId}'},
+  );
 }
 
 Future<List<SwitchDoc>> _getAllDocumentsInFolder(int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
