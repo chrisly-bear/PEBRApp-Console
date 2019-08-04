@@ -17,25 +17,35 @@ class _UserScreenState extends State<UserScreen> {
       appBar: AppBar(
         title: Text(widget._user.username),
       ),
-      body: Container(
-        width: double.infinity,
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    const _lineHeight = 1.5;
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Backup documents: ${widget._user.backupFiles?.length}'),
-            Text('Excel documents: ${widget._user.dataFiles?.length}'),
-            Text('Password documents: ${widget._user.passwordFiles?.length}'),
-            RaisedButton(
-              onPressed: () {},
-              child: Text('Reset PIN Code'),
+            Text(
+              widget._user.username,
+              style: TextStyle(fontSize: 26.0, fontWeight: FontWeight.w600),
             ),
-            RaisedButton(
-              onPressed: () {},
-              child: Text('Archive User'),
+            SizedBox(height: 5.0),
+            Text(
+              '${widget._user.firstname} ${widget._user.lastname}',
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w400),
             ),
+            SizedBox(height: 10.0),
+            Text('Excel Documents: ${widget._user.dataFiles?.length}', style: TextStyle(height: _lineHeight)),
+            Text('Backup Documents: ${widget._user.backupFiles?.length}', style: TextStyle(height: _lineHeight)),
+            Text('PIN Code Documents: ${widget._user.passwordFiles?.length}', style: TextStyle(height: _lineHeight)),
           ],
         ),
       ),
     );
   }
+
 }
