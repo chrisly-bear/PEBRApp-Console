@@ -233,7 +233,7 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
           RaisedButton(
-            child: Text('Delete'),
+            child: Text('Delete (${_selectedUsers.length})'),
             color: Theme.of(context).buttonTheme.colorScheme.error,
             textColor: Theme.of(context).buttonTheme.colorScheme.onError,
             onPressed: () {
@@ -278,7 +278,7 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
           RaisedButton(
-            child: Text('Archive'),
+            child: Text('Archive (${_selectedUsers.length})'),
             textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
             onPressed: () {
               // TODO: call the archive method from switch_toolbox_utils.dart
@@ -291,8 +291,48 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _resetPinForSelection() {
-    // TODO: implement
+  void _resetPinForSelection() async {
+    await showDialog(context: context, builder: (context) {
+      final selectedList = _selectedUsers.keys.map((u) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 5.0),
+          child: Row(
+            children: [
+              Icon(Icons.arrow_right),
+              Text(u.username),
+            ],
+          ),
+        );
+      }).toList();
+      const spacing = 10.0;
+      return AlertDialog(
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('The selected users will be prompted to enter a new PIN code the next time they log in to PEBRApp.'),
+              SizedBox(height: spacing),
+              Text('Are you sure you want to reset the PIN code for the following users?'),
+              SizedBox(height: spacing),
+              ...selectedList,
+            ],
+          ),
+        ),
+        actions: [
+          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
+          RaisedButton(
+            child: Text('Reset PIN (${_selectedUsers.length})'),
+            textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
+            onPressed: () {
+              // TODO: call the reset PIN method from switch_toolbox_utils.dart
+              _getUsersFromSwitch();
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    });
   }
 
   void _downloadExcelForSelection() {
