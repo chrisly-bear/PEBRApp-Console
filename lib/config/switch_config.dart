@@ -14,3 +14,9 @@ const int SWITCH_TOOLBOX_DATA_FOLDER_ID = 0;
 const int SWITCH_TOOLBOX_BACKUP_FOLDER_ID = 0;
 // subfolder under which all the password files are stored
 const int SWITCH_TOOLBOX_PASSWORD_FOLDER_ID = 0;
+// subfolder under which all the archived excel files are stored
+const int SWITCH_TOOLBOX_ARCHIVE_DATA_FOLDER_ID = 0;
+// subfolder under which all the archived backups are stored
+const int SWITCH_TOOLBOX_ARCHIVE_BACKUP_FOLDER_ID = 0;
+// subfolder under which all the archived password files are stored
+const int SWITCH_TOOLBOX_ARCHIVE_PASSWORD_FOLDER_ID = 0;
