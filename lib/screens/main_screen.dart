@@ -22,7 +22,7 @@ class _MainScreenState extends State<MainScreen> {
   double _networkProgress = -1.0;
 
   List<User> get _selectedUsersList => _selectedUsers.entries.where((final map) => map.value).map((final map) => map.key).toList();
-
+  bool get _hasError => _errorMessage.isNotEmpty;
   bool get _networkProcessing => _networkProgress >= 0.0;
 
   @override
@@ -34,6 +34,8 @@ class _MainScreenState extends State<MainScreen> {
   void _getUsersFromSwitch() {
     setState(() {
       _isLoading = true;
+      _selectedUsers = {};
+      _selectMode = false;
     });
     getAllPEBRAppUsers().then((result) {
       setState(() {
@@ -43,20 +45,25 @@ class _MainScreenState extends State<MainScreen> {
       });
     })
     .catchError((e, s) {
-      switch (e.runtimeType) {
-        case SWITCHLoginFailedException:
-          _errorMessage = 'Login to SWITCHtoolbox failed\n(wrong credentials?)';
-          break;
-        case SocketException:
-          _errorMessage = 'Connection to SWITCHtoolbox failed\n(no internet connection?)';
-          break;
-        default:
-          _errorMessage = 'An unknown error occurred:\n$e';
-      }
+      _handleException(e);
       setState(() {
         _isLoading = false;
       });
     });
+  }
+
+  void _handleException(e) {
+    switch (e.runtimeType) {
+      case SWITCHLoginFailedException:
+        _errorMessage = 'Login to SWITCHtoolbox failed\n(wrong credentials?)';
+        break;
+      case SocketException:
+        _errorMessage = 'Connection to SWITCHtoolbox failed\n(no internet connection?)';
+        break;
+      default:
+        _errorMessage = 'An unknown error occurred:\n${e.toString().isEmpty ? e.runtimeType : e.toString()}';
+        print(e);
+    }
   }
 
   @override
@@ -65,7 +72,7 @@ class _MainScreenState extends State<MainScreen> {
         appBar: AppBar(
           title: Text('PEBRApp Users${_areUsersSelected ? ' (${_selectedUsersList.length})' : ''}'),
           bottom: !_networkProcessing ? null : PreferredSize(child: LinearProgressIndicator(value: _networkProgress), preferredSize: Size(double.infinity, 10.0)),
-          actions: [
+          actions: _hasError ? [] : [
             if (!_selectMode) _popupMenu(),
             if (_selectMode) _areUsersSelected
                 ? IconButton(
@@ -88,7 +95,7 @@ class _MainScreenState extends State<MainScreen> {
         body: _buildBody(context),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: (!_areUsersSelected || _networkProcessing) ? [] : [
+          children: (!_areUsersSelected || _networkProcessing || _hasError) ? [] : [
             FloatingActionButton(
               onPressed: _deleteSelection,
               tooltip: 'Delete Selected',
@@ -128,7 +135,7 @@ class _MainScreenState extends State<MainScreen> {
         style: TextStyle(height: 1.5),
       ));
     }
-    if (_errorMessage.isNotEmpty) {
+    if (_hasError) {
       return Center(child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -373,6 +380,11 @@ class _MainScreenState extends State<MainScreen> {
                 });
               });
             }
+          }, onError: (error) {
+            setState(() {
+              _networkProgress = -1.0;
+              _handleException(error);
+            });
           });
         }
       },
