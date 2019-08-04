@@ -138,26 +138,22 @@ Stream<double> archiveUsers(List<User> users) async* {
   var currentFile = 1;
   for (final user in users) {
     for (final excelSwitchDoc in user.dataFiles) {
-      await _archiveDoc(excelSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_DATA_FOLDER_ID);
+      await _archiveDoc(excelSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_DATA_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
       yield currentFile++ / totalFiles;
     }
     for (final backupSwitchDoc in user.backupFiles) {
-      await _archiveDoc(backupSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_BACKUP_FOLDER_ID);
+      await _archiveDoc(backupSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
       yield currentFile++ / totalFiles;
     }
     for (final passwordSwitchDoc in user.passwordFiles) {
-      await _archiveDoc(passwordSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_PASSWORD_FOLDER_ID);
+      await _archiveDoc(passwordSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
       yield currentFile++ / totalFiles;
     }
   }
 }
 
 /// Moves [doc] to folder with [archiveFolderId].
-Future<void> _archiveDoc(SwitchDoc doc, int archiveFolderId) async {
-  // get necessary cookies
-  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
-  final _mydmsSessionCookie = await _getMydmsSession(_shibsessionCookie);
-
+Future<void> _archiveDoc(SwitchDoc doc, int archiveFolderId,  String _shibsessionCookie, String _mydmsSessionCookie) async {
   final resp = await http.get(
     Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.MoveDocument.php?documentid=${doc.docId}&targetidform1=$archiveFolderId'),
     headers: {'Cookie': '$_shibsessionCookie; $_mydmsSessionCookie'},
