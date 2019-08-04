@@ -72,7 +72,7 @@ class _MainScreenState extends State<MainScreen> {
         appBar: AppBar(
           title: Text('PEBRApp Users${_areUsersSelected ? ' (${_selectedUsersList.length})' : ''}'),
           bottom: !_networkProcessing ? null : PreferredSize(child: LinearProgressIndicator(value: _networkProgress), preferredSize: Size(double.infinity, 10.0)),
-          actions: _hasError ? [] : [
+          actions: (_hasError || _networkProcessing) ? [] : [
             if (!_selectMode) _popupMenu(),
             if (_selectMode) _areUsersSelected
                 ? IconButton(
@@ -300,13 +300,25 @@ class _MainScreenState extends State<MainScreen> {
             child: Text('Archive (${_selectedUsersList.length})'),
             textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
             onPressed: () {
+              Navigator.pop(context);
               archiveUsers(_selectedUsersList).listen((progress) {
-                // TODO: show progress in UI
                 print('user archiving status: ${(progress*100).round()}%');
+                setState(() {
+                  _networkProgress = progress;
+                });
                 if (progress >= 1.0) {
-                  _getUsersFromSwitch();
-                  Navigator.pop(context);
+                  Future.delayed(Duration(seconds: 1)).then((dynamic _) {
+                    setState(() {
+                      _networkProgress = -1.0; // tell the UI processing is done
+                    });
+                    _getUsersFromSwitch();
+                  });
                 }
+              }, onError: (error) {
+                setState(() {
+                  _networkProgress = -1.0;
+                  _handleException(error);
+                });
               });
             },
           ),
@@ -349,13 +361,25 @@ class _MainScreenState extends State<MainScreen> {
             child: Text('Reset PIN (${_selectedUsersList.length})'),
             textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
             onPressed: () {
+              Navigator.pop(context);
               resetPIN(_selectedUsersList).listen((progress) {
-                // TODO: show progress in UI
                 print('user PIN resetting status: ${(progress*100).round()}%');
+                setState(() {
+                  _networkProgress = progress;
+                });
                 if (progress >= 1.0) {
-                  _getUsersFromSwitch();
-                  Navigator.pop(context);
+                  Future.delayed(Duration(seconds: 1)).then((dynamic _) {
+                    setState(() {
+                      _networkProgress = -1.0; // tell the UI processing is done
+                    });
+                    _getUsersFromSwitch();
+                  });
                 }
+              }, onError: (error) {
+                setState(() {
+                  _networkProgress = -1.0;
+                  _handleException(error);
+                });
               });
             },
           ),
