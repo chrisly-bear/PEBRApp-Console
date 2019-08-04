@@ -229,14 +229,14 @@ Stream<double> deleteUsers(List<User> users) async* {
 
 /// Moves [doc] to folder with [archiveFolderId].
 Future<void> _archiveDoc(SwitchDoc doc, int archiveFolderId, String _shibsessionCookie, String _mydmsSessionCookie) async {
-  final resp = await http.get(
+  final _ = await http.get(
     Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.MoveDocument.php?documentid=${doc.docId}&targetidform1=$archiveFolderId'),
     headers: {'Cookie': '$_shibsessionCookie; $_mydmsSessionCookie'},
   );
 }
 
 Future<void> _deleteDoc(SwitchDoc doc, String _shibsessionCookie, String _mydmsSessionCookie) async {
-  final resp = await http.post(
+  final _ = await http.post(
     Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.RemoveDocument.php'),
     headers: {'Cookie': '$_shibsessionCookie; $_mydmsSessionCookie'},
     body: {'documentid': '${doc.docId}'},
@@ -405,9 +405,14 @@ class SwitchDoc {
   /// Constructor
   SwitchDoc({this.docName, this.docId, this.containingFolder, this.versions});
 
+  /// The name as it appears in SWITCHtoolbox. This is derived from the a (html)
+  /// element.
   String docName;
+  /// SWITCHtoolbox identifier. Uniquely identifies documents on SWITCHtoolbox.
   int docId;
+  /// SWITCHtoolbox folder ID in which this document is contained.
   int containingFolder;
+  /// All versions that are available for this document.
   List<int> versions;
 
   @override
