@@ -117,7 +117,6 @@ Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) asy
   }
 }
 
-
 /// Moves all files associated with the given [users] to their corresponding
 /// archive folder on SWITCHtoolbox.
 Stream<double> archiveUsers(List<User> users) async* {
@@ -151,6 +150,37 @@ Stream<double> archiveUsers(List<User> users) async* {
       await _archiveDoc(backupSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
       yield currentFile++ / totalFiles;
     }
+    for (final passwordSwitchDoc in user.passwordFiles) {
+      await Future.delayed(Duration(seconds: 1)); // todo: remove this debug statement
+      await _archiveDoc(passwordSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+  }
+}
+
+/// Moves the password file associated with the given [users] to the password
+/// archive folder on SWITCHtoolbox.
+Stream<double> resetPIN(List<User> users) async* {
+
+  // start with 0%
+  yield 0.0;
+
+  var totalFiles = 0;
+  for (final u in users) {
+    totalFiles += u.passwordFiles.length;
+  }
+
+  if (totalFiles == 0) {
+    // no files to download, yield 100% status
+    yield 1.0;
+  }
+
+  // get necessary cookies
+  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
+
+  var currentFile = 1;
+  for (final user in users) {
     for (final passwordSwitchDoc in user.passwordFiles) {
       await _archiveDoc(passwordSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
       yield currentFile++ / totalFiles;

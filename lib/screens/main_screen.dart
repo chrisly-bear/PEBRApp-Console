@@ -275,7 +275,7 @@ class _MainScreenState extends State<MainScreen> {
           RaisedButton(
             child: Text('Archive (${_selectedUsersList.length})'),
             textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
-            onPressed: () async {
+            onPressed: () {
               archiveUsers(_selectedUsersList).listen((progress) {
                 // TODO: show progress in UI
                 print('user archiving status: ${(progress*100).round()}%');
@@ -325,9 +325,14 @@ class _MainScreenState extends State<MainScreen> {
             child: Text('Reset PIN (${_selectedUsersList.length})'),
             textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
             onPressed: () {
-              // TODO: call the reset PIN method from switch_toolbox_utils.dart
-              _getUsersFromSwitch();
-              Navigator.pop(context);
+              resetPIN(_selectedUsersList).listen((progress) {
+                // TODO: show progress in UI
+                print('user PIN resetting status: ${(progress*100).round()}%');
+                if (progress >= 1.0) {
+                  _getUsersFromSwitch();
+                  Navigator.pop(context);
+                }
+              });
             },
           ),
         ],
