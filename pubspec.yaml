@@ -15,6 +15,7 @@ dependencies:
     path: plugins/file_chooser
   html: ^0.13.4+1
   http: ^0.12.0+2
+  path: ^1.6.2
 
   cupertino_icons: ^0.1.0
 

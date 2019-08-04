@@ -118,7 +118,7 @@ class _MainScreenState extends State<MainScreen> {
             SizedBox(width: 10.0),
             FloatingActionButton(
               onPressed: _downloadExcelForSelection,
-              tooltip: 'Download Excel Files for Selected',
+              tooltip: 'Download Latest Excel Files for Selected',
               child: Icon(Icons.file_download),
             ),
           ],
@@ -336,15 +336,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _downloadExcelForSelection() {
-    showSavePanel((result, paths) {
-      print(result);
-      print(paths);
-      if (result == FileChooserResult.ok) {
-        for (final p in paths) {
-          File(p).writeAsStringSync('file at "$p"');
+    showSavePanel(
+      (result, paths) {
+        if (result == FileChooserResult.ok) {
+          downloadLatestExcelFiles(_selectedUsers.keys.toList(), paths.first).listen((progress) {
+            print('excel download status: ${(progress*100).round()}%');
+          });
         }
-      }
-    });
+      },
+      suggestedFileName: 'PEBRApp-data',
+    );
   }
 
   Widget _popupMenu() {

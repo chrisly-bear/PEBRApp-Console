@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
+import 'package:path/path.dart';
 import 'package:pebrapp_console/config/switch_config.dart';
 import 'package:pebrapp_console/exceptions.dart';
 import 'package:pebrapp_console/user.dart';
@@ -97,60 +98,51 @@ Future<void> uploadFileToSWITCHtoolbox(File sourceFile, {String filename, int fo
   // TODO: return something to indicate whether the upload was successful or not
 }
 
-/// Downloads the excel file from SWITCHtoolbox for the given [username].
+/// Downloads the most recent version of the excel files from SWITCHtoolbox for
+/// the given [users].
 ///
-/// @param [targetPath] Where to store the downloaded file. Must be a complete path (including the filename).
-///
-/// Throws `DocumentNotFoundException` if no password file is available for the
-/// given [username].
-Future<File> downloadExcelFile(String username, String targetPath) async {
+/// @param [targetPath] Where to store the downloaded files. WARNING: Directory
+/// will be erased if it already exists!
+Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) async* {
+
+  var totalFiles = 0;
+  for (final u in users) {
+    totalFiles += u.dataFiles.length;
+  }
+
+  if (totalFiles == 0) {
+    // no files to download, yield 100% status
+    yield 1.0;
+  }
 
   // get necessary cookies
   final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
   final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
 
-  final documentName = await _getFirstDocumentNameForDocumentStartingWith(username, SWITCH_TOOLBOX_DATA_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
-  final switchDocumentId = await _getFirstDocumentIdForDocumentWithName(documentName, SWITCH_TOOLBOX_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
-  final latestVersion = await _getLatestVersionOfDocument(switchDocumentId, _shibsessionCookie, _mydmssessionCookie);
-  final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=$switchDocumentId&version=$latestVersion';
-  final downloadUri = Uri.parse(absoluteLink);
+  final targetDir = Directory(targetPath);
+  if (await targetDir.exists()) {
+    await targetDir.delete(recursive: true);
+  }
+  await targetDir.create();
 
-  // download file
-  final resp = await http.get(downloadUri,
-    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
-  );
+  var currentFile = 1;
+  for (final user in users) {
+    for (final excelSwitchDoc in user.dataFiles) {
+      final latestVersion = await _getLatestVersionOfDocument(excelSwitchDoc.docId, _shibsessionCookie, _mydmssessionCookie);
+      final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=${excelSwitchDoc.docId}&version=$latestVersion';
+      final downloadUri = Uri.parse(absoluteLink);
 
-  // store file in database directory
-  final excelFile = File(targetPath);
-  return await excelFile.writeAsBytes(resp.bodyBytes, flush: true);
-}
+      // download file
+      final resp = await http.get(downloadUri, headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'});
+      final filename = resp.headers['content-disposition'].split('"')[1];
 
-/// Downloads the latest backup file that matches the loginData from SWITCHtoolbox.
-/// Returns null if no matching backup is found.
-///
-/// @param [targetPath] Where to store the downloaded file. Must be a complete path (including the filename).
-///
-/// Throws `DocumentNotFoundException` if no backup is available for the loginData.
-Future<File> downloadLatestBackup(String username, String targetPath) async {
-  
-  // get necessary cookies
-  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
-  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
-
-  final documentName = await _getFirstDocumentNameForDocumentStartingWith(username, SWITCH_TOOLBOX_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
-  final switchDocumentId = await _getFirstDocumentIdForDocumentWithName(documentName, SWITCH_TOOLBOX_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
-  final latestVersion = await _getLatestVersionOfDocument(switchDocumentId, _shibsessionCookie, _mydmssessionCookie);
-  final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=$switchDocumentId&version=$latestVersion';
-  final downloadUri = Uri.parse(absoluteLink);
-
-  // download file
-  final resp = await http.get(downloadUri,
-    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
-  );
-
-  // store file in database directory
-  final backupFile = File(targetPath);
-  return await backupFile.writeAsBytes(resp.bodyBytes, flush: true);
+      // store file in target directory
+      final fullPath = join(targetPath, '${currentFile}_${user.username}_v${latestVersion}_$filename');
+      final excelFile = File(fullPath);
+      await excelFile.writeAsBytes(resp.bodyBytes, flush: true);
+      yield currentFile++ / totalFiles;
+    }
+  }
 }
 
 /// Uploads a new version of the document with name `sourceFile` on SWITCHtoolbox.
