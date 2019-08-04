@@ -22,9 +22,18 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void initState() {
+    _getUsersFromSwitch();
+    super.initState();
+  }
+
+  void _getUsersFromSwitch() {
+    setState(() {
+      _isLoading = true;
+    });
     getAllPEBRAppUsers().then((result) {
       setState(() {
         _pebraUsers = result;
+        _errorMessage = '';
         _isLoading = false;
       });
     })
@@ -43,7 +52,6 @@ class _MainScreenState extends State<MainScreen> {
         _isLoading = false;
       });
     });
-    super.initState();
   }
 
   @override
@@ -78,9 +86,15 @@ class _MainScreenState extends State<MainScreen> {
         ),
         body: _isLoading
             ? Center(child: CircularProgressIndicator())
-            : _errorMessage.isNotEmpty
-              ? Center(child: Text(_errorMessage, textAlign: TextAlign.center))
-              : buildUserList(context),
+            : _errorMessage.isEmpty
+              ? buildUserList(context)
+              : Center(child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_errorMessage, textAlign: TextAlign.center),
+                  RaisedButton(child: Text('Reload'), onPressed: _getUsersFromSwitch),
+                ],
+              )),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
