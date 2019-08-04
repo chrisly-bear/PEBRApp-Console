@@ -51,6 +51,30 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
         appBar: AppBar(
           title: Text('PEBRApp Users'),
+          actions: [
+              if (!_selectMode) IconButton(
+                  tooltip: 'Select All Users',
+                  icon: Icon(Icons.check_box),
+                  onPressed: _selectAllUsers,
+                ),
+            if (_selectMode) _areUsersSelected
+                ? IconButton(
+                  tooltip: 'Deselect All Users',
+                  icon: Icon(Icons.check_box_outline_blank),
+                  onPressed: _deselectAllUsers,
+                )
+                : IconButton(
+                  tooltip: 'Select All Users',
+                  icon: Icon(Icons.check_box),
+                  onPressed: _selectAllUsers,
+                ),
+            if (_selectMode) IconButton(
+                  tooltip: 'Stop Selecting',
+                  icon: Icon(Icons.close),
+                  onPressed: _cancelSelection,
+                ),
+            // _popupMenu(),
+          ],
         ),
         body: _isLoading
             ? Center(child: CircularProgressIndicator())
@@ -137,10 +161,17 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _selectAllUsers() {
+    _selectMode = true;
     _pebraUsers.forEach((final user) {
       _selectedUsers[user] = true;
     });
     setState(() {});
+  }
+
+  void _deselectAllUsers() {
+    setState(() {
+      _selectedUsers = {};
+    });
   }
 
   void _cancelSelection() {
@@ -164,6 +195,30 @@ class _MainScreenState extends State<MainScreen> {
         }
       }
     });
+  }
+
+  Widget _popupMenu() {
+    return PopupMenuButton<String>(
+      onSelected: (selection) {
+        switch (selection) {
+          case 'Cancel Selection':
+            _cancelSelection();
+            break;
+          case 'Select All':
+            _selectAllUsers();
+            break;
+          default:
+        }
+      },
+      itemBuilder: (context) {
+        return ['Cancel Selection', 'Select All'].map((choice) {
+          return PopupMenuItem<String>(
+            value: choice,
+            child: Text(choice),
+          );
+        }).toList();
+      },
+    );
   }
 
 }
