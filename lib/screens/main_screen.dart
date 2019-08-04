@@ -275,10 +275,15 @@ class _MainScreenState extends State<MainScreen> {
           RaisedButton(
             child: Text('Archive (${_selectedUsers.length})'),
             textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
-            onPressed: () {
-              // TODO: call the archive method from switch_toolbox_utils.dart
-              _getUsersFromSwitch();
-              Navigator.pop(context);
+            onPressed: () async {
+              archiveUsers(_selectedUsers.keys.toList()).listen((progress) {
+                // TODO: show progress in UI
+                print('user archiving status: ${(progress*100).round()}%');
+                if (progress >= 1.0) {
+                  _getUsersFromSwitch();
+                  Navigator.pop(context);
+                }
+              });
             },
           ),
         ],
