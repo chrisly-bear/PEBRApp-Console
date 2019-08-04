@@ -452,7 +452,7 @@ class _MainScreenState extends State<MainScreen> {
         }
       },
       itemBuilder: (context) {
-        return ['Reload Data', 'Select All', 'Change Theme'].map((choice) {
+        return ['Select All', 'Reload Data', 'Change Theme'].map((choice) {
           return PopupMenuItem<String>(
             value: choice,
             child: Text(choice),
