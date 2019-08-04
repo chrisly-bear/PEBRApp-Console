@@ -60,11 +60,7 @@ class _MainScreenState extends State<MainScreen> {
         appBar: AppBar(
           title: Text('PEBRApp Users'),
           actions: [
-              if (!_selectMode) IconButton(
-                  tooltip: 'Select All Users',
-                  icon: Icon(Icons.check_box),
-                  onPressed: _selectAllUsers,
-                ),
+            if (!_selectMode) _popupMenu(),
             if (_selectMode) _areUsersSelected
                 ? IconButton(
                   tooltip: 'Deselect All Users',
@@ -81,7 +77,6 @@ class _MainScreenState extends State<MainScreen> {
                   icon: Icon(Icons.close),
                   onPressed: _exitSelectMode,
                 ),
-            // _popupMenu(),
           ],
         ),
         body: _isLoading
@@ -352,8 +347,8 @@ class _MainScreenState extends State<MainScreen> {
     return PopupMenuButton<String>(
       onSelected: (selection) {
         switch (selection) {
-          case 'Cancel Selection':
-            _exitSelectMode();
+          case 'Reload Data':
+            _getUsersFromSwitch();
             break;
           case 'Select All':
             _selectAllUsers();
@@ -362,7 +357,7 @@ class _MainScreenState extends State<MainScreen> {
         }
       },
       itemBuilder: (context) {
-        return ['Cancel Selection', 'Select All'].map((choice) {
+        return ['Reload Data', 'Select All'].map((choice) {
           return PopupMenuItem<String>(
             value: choice,
             child: Text(choice),
