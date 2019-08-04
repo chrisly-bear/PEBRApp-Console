@@ -201,8 +201,50 @@ class _MainScreenState extends State<MainScreen> {
     return _selectedUsers.values.any((final val) => val);
   }
 
-  void _deleteSelection() {
-    // TODO: implement
+  void _deleteSelection() async {
+    await showDialog(context: context, builder: (context) {
+      final selectedList = _selectedUsers.keys.map((u) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 5.0),
+          child: Row(
+            children: [
+              Icon(Icons.arrow_right),
+              Text(u.username),
+            ],
+          ),
+        );
+      }).toList();
+      const spacing = 10.0;
+      return AlertDialog(
+        title: Text('Warning!'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('This deletes all data associated with the selected users. This action cannot be undone!'),
+              SizedBox(height: spacing),
+              Text('Are you sure you want to delete the following users and all of their data?'),
+              SizedBox(height: spacing),
+              ...selectedList,
+            ],
+          ),
+        ),
+        actions: [
+          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
+          RaisedButton(
+            child: Text('Delete'),
+            color: Theme.of(context).buttonTheme.colorScheme.error,
+            textColor: Theme.of(context).buttonTheme.colorScheme.onError,
+            onPressed: () {
+              // TODO: call the delete method from switch_toolbox_utils.dart
+              _getUsersFromSwitch();
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    });
   }
 
   void _archiveSelection() {
