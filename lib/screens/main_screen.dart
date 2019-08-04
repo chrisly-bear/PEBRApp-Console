@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_chooser/file_chooser.dart';
+import 'package:pebrapp_console/bloc.dart';
 import 'package:pebrapp_console/exceptions.dart';
 import 'package:pebrapp_console/screens/user_screen.dart';
+import 'package:pebrapp_console/themes.dart' as t;
 import 'package:pebrapp_console/user.dart';
 import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
 
@@ -443,16 +445,50 @@ class _MainScreenState extends State<MainScreen> {
           case 'Select All':
             _selectAllUsers();
             break;
+          case 'Change Theme':
+            _showThemeDialog(context);
+            break;
           default:
         }
       },
       itemBuilder: (context) {
-        return ['Reload Data', 'Select All'].map((choice) {
+        return ['Reload Data', 'Select All', 'Change Theme'].map((choice) {
           return PopupMenuItem<String>(
             value: choice,
             child: Text(choice),
           );
         }).toList();
+      },
+    );
+  }
+
+  void _showThemeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Change Theme'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: t.allThemes.map((themeName, themeData) {
+              return MapEntry<String, MaterialButton>(
+                themeName,
+                FlatButton(
+                  child: Text(themeName),
+                  onPressed: () {
+                    Bloc().theme = themeData;
+                  },
+                ),
+              );
+            }).values.toList(),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Close'),
+              onPressed: () { Navigator.of(context).pop(); },
+            )
+          ],
+        );
       },
     );
   }
