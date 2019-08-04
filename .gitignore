@@ -17,3 +17,5 @@ pubspec.lock
 flutter_export_environment.sh
 Flutter-Generated.xcconfig
 PEBRApp-Console.iml
+macos/Podfile.lock
+macos/Flutter/GeneratedPluginRegistrant.swift

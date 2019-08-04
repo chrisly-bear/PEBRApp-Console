@@ -7,6 +7,7 @@ import 'package:pebrapp_console/screens/user_screen.dart';
 import 'package:pebrapp_console/themes.dart' as t;
 import 'package:pebrapp_console/user.dart';
 import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Main screen of the application. Shows a list of all PEBRApp users.
 class MainScreen extends StatefulWidget {
@@ -29,6 +30,10 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void initState() {
+    SharedPreferences.getInstance().then((prefs) {
+      final themeName = prefs.getString('theme');
+      Bloc().theme = t.themeWithName(themeName);
+    });
     _getUsersFromSwitch();
     super.initState();
   }
@@ -476,6 +481,9 @@ class _MainScreenState extends State<MainScreen> {
                 FlatButton(
                   child: Text(themeName),
                   onPressed: () {
+                    SharedPreferences.getInstance().then((prefs) {
+                      prefs.setString('theme', themeName);
+                    });
                     Bloc().theme = themeData;
                   },
                 ),

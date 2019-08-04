@@ -19,3 +19,12 @@ Map<String, ThemeData> get allThemes => {
   'light': lightTheme,
   'dark': darkTheme,
 };
+
+/// Get the theme for the given [themeName]. Returns [lightTheme] if no matching
+/// theme is found.
+ThemeData themeWithName(String themeName) {
+  if (allThemes.containsKey(themeName)) {
+    return allThemes[themeName];
+  }
+  return lightTheme;
+}
