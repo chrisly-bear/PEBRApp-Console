@@ -247,8 +247,48 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _archiveSelection() {
-    // TODO: implement
+  void _archiveSelection() async {
+    await showDialog(context: context, builder: (context) {
+      final selectedList = _selectedUsers.keys.map((u) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 5.0),
+          child: Row(
+            children: [
+              Icon(Icons.arrow_right),
+              Text(u.username),
+            ],
+          ),
+        );
+      }).toList();
+      const spacing = 10.0;
+      return AlertDialog(
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('This moves all data associated with the selected users to the archives folder, which means the selected users will not be able to use their account anymore.'),
+              SizedBox(height: spacing),
+              Text('Are you sure you want to archive the following users?'),
+              SizedBox(height: spacing),
+              ...selectedList,
+            ],
+          ),
+        ),
+        actions: [
+          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
+          RaisedButton(
+            child: Text('Archive'),
+            textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
+            onPressed: () {
+              // TODO: call the archive method from switch_toolbox_utils.dart
+              _getUsersFromSwitch();
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    });
   }
 
   void _resetPinForSelection() {
