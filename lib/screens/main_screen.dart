@@ -79,7 +79,7 @@ class _MainScreenState extends State<MainScreen> {
             if (_selectMode) IconButton(
                   tooltip: 'Stop Selecting',
                   icon: Icon(Icons.close),
-                  onPressed: _cancelSelection,
+                  onPressed: _exitSelectMode,
                 ),
             // _popupMenu(),
           ],
@@ -97,27 +97,29 @@ class _MainScreenState extends State<MainScreen> {
               )),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            if (_selectMode) FloatingActionButton(
-              onPressed: _selectAllUsers,
-              tooltip: 'Select All',
-              child: Icon(Icons.check),
-            ),
-            if (_selectMode) SizedBox(width: 10.0),
-            if (_selectMode) FloatingActionButton(
-              onPressed: _cancelSelection,
-              tooltip: 'Cancel Selection',
-              child: Icon(Icons.close),
-            ),
-            if (_selectMode) SizedBox(width: 10.0),
+          children: !_areUsersSelected ? [] : [
             FloatingActionButton(
-              onPressed: _areUsersSelected ? _showSavePanel : null,
-              tooltip: 'Download Selected',
-              child: Icon(
-                Icons.cloud_download,
-                color: _areUsersSelected ? null : Colors.blueGrey,
-              ),
-              backgroundColor: _areUsersSelected ? null : Colors.grey,
+              onPressed: _deleteSelection,
+              tooltip: 'Delete Selected',
+              child: Icon(Icons.delete),
+            ),
+            SizedBox(width: 10.0),
+            FloatingActionButton(
+              onPressed: _archiveSelection,
+              tooltip: 'Archive Selected',
+              child: Icon(Icons.archive),
+            ),
+            SizedBox(width: 10.0),
+            FloatingActionButton(
+              onPressed: _resetPinForSelection,
+              tooltip: 'Reset PIN Code for Selected',
+              child: Icon(Icons.lock),
+            ),
+            SizedBox(width: 10.0),
+            FloatingActionButton(
+              onPressed: _downloadExcelForSelection,
+              tooltip: 'Download Excel Files for Selected',
+              child: Icon(Icons.file_download),
             ),
           ],
         ),
@@ -188,7 +190,7 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _cancelSelection() {
+  void _exitSelectMode() {
     setState(() {
       _selectedUsers = {};
       _selectMode = false;
@@ -199,7 +201,19 @@ class _MainScreenState extends State<MainScreen> {
     return _selectedUsers.values.any((final val) => val);
   }
 
-  void _showSavePanel() {
+  void _deleteSelection() {
+    // TODO: implement
+  }
+
+  void _archiveSelection() {
+    // TODO: implement
+  }
+
+  void _resetPinForSelection() {
+    // TODO: implement
+  }
+
+  void _downloadExcelForSelection() {
     showSavePanel((result, paths) {
       print(result);
       print(paths);
@@ -216,7 +230,7 @@ class _MainScreenState extends State<MainScreen> {
       onSelected: (selection) {
         switch (selection) {
           case 'Cancel Selection':
-            _cancelSelection();
+            _exitSelectMode();
             break;
           case 'Select All':
             _selectAllUsers();
