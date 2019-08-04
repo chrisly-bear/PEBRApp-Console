@@ -132,7 +132,7 @@ Stream<double> archiveUsers(List<User> users) async* {
   }
 
   if (totalFiles == 0) {
-    // no files to download, yield 100% status
+    // no files to archive, yield 100% status
     yield 1.0;
   }
 
@@ -151,7 +151,6 @@ Stream<double> archiveUsers(List<User> users) async* {
       yield currentFile++ / totalFiles;
     }
     for (final passwordSwitchDoc in user.passwordFiles) {
-      await Future.delayed(Duration(seconds: 1)); // todo: remove this debug statement
       await _archiveDoc(passwordSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
       yield currentFile++ / totalFiles;
     }
@@ -171,7 +170,7 @@ Stream<double> resetPIN(List<User> users) async* {
   }
 
   if (totalFiles == 0) {
-    // no files to download, yield 100% status
+    // no files to archive, yield 100% status
     yield 1.0;
   }
 
@@ -188,8 +187,48 @@ Stream<double> resetPIN(List<User> users) async* {
   }
 }
 
+/// Deletes all files associated with the given [users]. This action cannot be
+/// undone!
+Stream<double> deleteUsers(List<User> users) async* {
+
+  // start with 0%
+  yield 0.0;
+
+  var totalFiles = 0;
+  for (final u in users) {
+    totalFiles += u.dataFiles.length;
+    totalFiles += u.backupFiles.length;
+    totalFiles += u.passwordFiles.length;
+  }
+
+  if (totalFiles == 0) {
+    // no files to delete, yield 100% status
+    yield 1.0;
+  }
+
+  // get necessary cookies
+  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
+
+  var currentFile = 1;
+  for (final user in users) {
+    for (final excelSwitchDoc in user.dataFiles) {
+      await _deleteDoc(excelSwitchDoc, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+    for (final backupSwitchDoc in user.backupFiles) {
+      await _deleteDoc(backupSwitchDoc, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+    for (final passwordSwitchDoc in user.passwordFiles) {
+      await _deleteDoc(passwordSwitchDoc, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+  }
+}
+
 /// Moves [doc] to folder with [archiveFolderId].
-Future<void> _archiveDoc(SwitchDoc doc, int archiveFolderId,  String _shibsessionCookie, String _mydmsSessionCookie) async {
+Future<void> _archiveDoc(SwitchDoc doc, int archiveFolderId, String _shibsessionCookie, String _mydmsSessionCookie) async {
   final resp = await http.get(
     Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.MoveDocument.php?documentid=${doc.docId}&targetidform1=$archiveFolderId'),
     headers: {'Cookie': '$_shibsessionCookie; $_mydmsSessionCookie'},
@@ -197,7 +236,7 @@ Future<void> _archiveDoc(SwitchDoc doc, int archiveFolderId,  String _shibsessio
 }
 
 // TODO: implement
-Future<void> _deleteDoc(SwitchDoc doc) async {
+Future<void> _deleteDoc(SwitchDoc doc, String _shibsessionCookie, String _mydmsSessionCookie) async {
 //  // upload file
 //  final _req1 = http.MultipartRequest('POST', Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.AddDocument.php'))
 //    ..headers['Cookie'] = _cookieHeaderString

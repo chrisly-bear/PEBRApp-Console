@@ -256,9 +256,26 @@ class _MainScreenState extends State<MainScreen> {
             color: Theme.of(context).buttonTheme.colorScheme.error,
             textColor: Theme.of(context).buttonTheme.colorScheme.onError,
             onPressed: () {
-              // TODO: call the delete method from switch_toolbox_utils.dart
-              _getUsersFromSwitch();
               Navigator.pop(context);
+              deleteUsers(_selectedUsersList).listen((progress) {
+                print('user deletion status: ${(progress*100).round()}%');
+                setState(() {
+                  _networkProgress = progress;
+                });
+                if (progress >= 1.0) {
+                  Future.delayed(Duration(seconds: 1)).then((dynamic _) {
+                    setState(() {
+                      _networkProgress = -1.0; // tell the UI processing is done
+                    });
+                    _getUsersFromSwitch();
+                  });
+                }
+              }, onError: (error) {
+                setState(() {
+                  _networkProgress = -1.0;
+                  _handleException(error);
+                });
+              });
             },
           ),
         ],
