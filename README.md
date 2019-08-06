@@ -1,6 +1,6 @@
-# pebrapp_console
+# PEBRApp Console (mobile)
 
-A new Flutter project.
+This is an administrative tool to help manage the PEBRApp users and data (see [PEBRApp repository](https://github.com/chrisly-bear/PEBRApp)). This is the mobile version, there is also a desktop version on the `desktop` branch.
 
 ## Getting Started
 
