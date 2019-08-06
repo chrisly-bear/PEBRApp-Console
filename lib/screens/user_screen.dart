@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pebrapp_console/user.dart';
+import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
 
 /// User screen which shows all user related information and actions.
 class UserScreen extends StatefulWidget {
@@ -11,31 +12,73 @@ class UserScreen extends StatefulWidget {
 }
 
 class _UserScreenState extends State<UserScreen> {
+
+  BuildContext _context;
+  bool _downloadingExcel = false;
+  int get _numExcelFiles => widget._user.dataFiles.length;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget._user.username),
       ),
-      body: Container(
-        width: double.infinity,
+      body: Builder(
+        // create an inner BuildContext to be able to show SnackBars
+        builder: (context) {
+          _context = context;
+          return _buildBody();
+        }
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    const _lineHeight = 1.5;
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Backup documents: ${widget._user.backupFiles?.length}'),
-            Text('Excel documents: ${widget._user.dataFiles?.length}'),
-            Text('Password documents: ${widget._user.passwordFiles?.length}'),
-            RaisedButton(
-              onPressed: () {},
-              child: Text('Reset PIN Code'),
+            Text(
+              widget._user.username,
+              style: TextStyle(fontSize: 26.0, fontWeight: FontWeight.w600),
             ),
-            RaisedButton(
-              onPressed: () {},
-              child: Text('Archive User'),
+            SizedBox(height: 5.0),
+            Text(
+              '${widget._user.firstname} ${widget._user.lastname}',
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w400),
+            ),
+            SizedBox(height: 10.0),
+            Text('Excel Documents: $_numExcelFiles', style: TextStyle(height: _lineHeight)),
+            Text('Backup Documents: ${widget._user.backupFiles?.length}', style: TextStyle(height: _lineHeight)),
+            Text('PIN Code Documents: ${widget._user.passwordFiles?.length}', style: TextStyle(height: _lineHeight)),
+            SizedBox(height: 10.0),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: RaisedButton(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (_downloadingExcel) SizedBox(child: CircularProgressIndicator(), height: 15.0, width: 15.0),
+                    Text(
+                      'Download Excel File${_numExcelFiles > 1 ? 's' : ''}',
+                      style: TextStyle(color: _downloadingExcel ? Colors.transparent : null),
+                    ),
+                  ],
+                ),
+                onPressed: _numExcelFiles == 0 ? null : _downloadExcel,
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  void _downloadExcel() {
+    // TODO: ios/android impelementation
+  }
+
 }

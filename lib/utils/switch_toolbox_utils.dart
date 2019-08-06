@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
+import 'package:path/path.dart';
 import 'package:pebrapp_console/config/switch_config.dart';
 import 'package:pebrapp_console/exceptions.dart';
 import 'package:pebrapp_console/user.dart';
@@ -66,6 +67,182 @@ Future<List<User>> getAllPEBRAppUsers() async {
   return users.toList();
 }
 
+/// Downloads the most recent version of the excel files from SWITCHtoolbox for
+/// the given [users].
+///
+/// @param [targetPath] Where to store the downloaded files. WARNING: Directory
+/// will be erased if it already exists!
+Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) async* {
+
+  // start with 0%
+  yield 0.0;
+
+  var totalFiles = 0;
+  for (final u in users) {
+    totalFiles += u.dataFiles.length;
+  }
+
+  if (totalFiles == 0) {
+    // no files to download, yield 100% status
+    yield 1.0;
+  }
+
+  // get necessary cookies
+  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
+
+  final targetDir = Directory(targetPath);
+  if (await targetDir.exists()) {
+    await targetDir.delete(recursive: true);
+  }
+  await targetDir.create();
+
+  var currentFile = 1;
+  for (final user in users) {
+    for (final excelSwitchDoc in user.dataFiles) {
+      final latestVersion = await _getLatestVersionOfDocument(excelSwitchDoc.docId, _shibsessionCookie, _mydmssessionCookie);
+      final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=${excelSwitchDoc.docId}&version=$latestVersion';
+      final downloadUri = Uri.parse(absoluteLink);
+
+      // download file
+      final resp = await http.get(downloadUri, headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'});
+      final filename = resp.headers['content-disposition'].split('"')[1];
+
+      // store file in target directory
+      final fullPath = join(targetPath, '${currentFile}_${user.username}_v${latestVersion}_$filename');
+      final excelFile = File(fullPath);
+      await excelFile.writeAsBytes(resp.bodyBytes, flush: true);
+      yield currentFile++ / totalFiles;
+    }
+  }
+}
+
+/// Moves all files associated with the given [users] to their corresponding
+/// archive folder on SWITCHtoolbox.
+Stream<double> archiveUsers(List<User> users) async* {
+
+  // start with 0%
+  yield 0.0;
+
+  var totalFiles = 0;
+  for (final u in users) {
+    totalFiles += u.dataFiles.length;
+    totalFiles += u.backupFiles.length;
+    totalFiles += u.passwordFiles.length;
+  }
+
+  if (totalFiles == 0) {
+    // no files to archive, yield 100% status
+    yield 1.0;
+  }
+
+  // get necessary cookies
+  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
+
+  var currentFile = 1;
+  for (final user in users) {
+    for (final excelSwitchDoc in user.dataFiles) {
+      await _archiveDoc(excelSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_DATA_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+    for (final backupSwitchDoc in user.backupFiles) {
+      await _archiveDoc(backupSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+    for (final passwordSwitchDoc in user.passwordFiles) {
+      await _archiveDoc(passwordSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+  }
+}
+
+/// Moves the password file associated with the given [users] to the password
+/// archive folder on SWITCHtoolbox.
+Stream<double> resetPIN(List<User> users) async* {
+
+  // start with 0%
+  yield 0.0;
+
+  var totalFiles = 0;
+  for (final u in users) {
+    totalFiles += u.passwordFiles.length;
+  }
+
+  if (totalFiles == 0) {
+    // no files to archive, yield 100% status
+    yield 1.0;
+  }
+
+  // get necessary cookies
+  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
+
+  var currentFile = 1;
+  for (final user in users) {
+    for (final passwordSwitchDoc in user.passwordFiles) {
+      await _archiveDoc(passwordSwitchDoc, SWITCH_TOOLBOX_ARCHIVE_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+  }
+}
+
+/// Deletes all files associated with the given [users]. This action cannot be
+/// undone!
+Stream<double> deleteUsers(List<User> users) async* {
+
+  // start with 0%
+  yield 0.0;
+
+  var totalFiles = 0;
+  for (final u in users) {
+    totalFiles += u.dataFiles.length;
+    totalFiles += u.backupFiles.length;
+    totalFiles += u.passwordFiles.length;
+  }
+
+  if (totalFiles == 0) {
+    // no files to delete, yield 100% status
+    yield 1.0;
+  }
+
+  // get necessary cookies
+  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
+
+  var currentFile = 1;
+  for (final user in users) {
+    for (final excelSwitchDoc in user.dataFiles) {
+      await _deleteDoc(excelSwitchDoc, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+    for (final backupSwitchDoc in user.backupFiles) {
+      await _deleteDoc(backupSwitchDoc, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+    for (final passwordSwitchDoc in user.passwordFiles) {
+      await _deleteDoc(passwordSwitchDoc, _shibsessionCookie, _mydmssessionCookie);
+      yield currentFile++ / totalFiles;
+    }
+  }
+}
+
+/// Moves [doc] to folder with [archiveFolderId].
+Future<void> _archiveDoc(SwitchDoc doc, int archiveFolderId, String _shibsessionCookie, String _mydmsSessionCookie) async {
+  final _ = await http.get(
+    Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.MoveDocument.php?documentid=${doc.docId}&targetidform1=$archiveFolderId'),
+    headers: {'Cookie': '$_shibsessionCookie; $_mydmsSessionCookie'},
+  );
+}
+
+Future<void> _deleteDoc(SwitchDoc doc, String _shibsessionCookie, String _mydmsSessionCookie) async {
+  final _ = await http.post(
+    Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.RemoveDocument.php'),
+    headers: {'Cookie': '$_shibsessionCookie; $_mydmsSessionCookie'},
+    body: {'documentid': '${doc.docId}'},
+  );
+}
+
 Future<List<SwitchDoc>> _getAllDocumentsInFolder(int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
 
   // get list of files
@@ -97,187 +274,6 @@ Future<List<SwitchDoc>> _getAllDocumentsInFolder(int folderId, String _shibsessi
     }
   }
   return docs;
-}
-
-/// Uploads `sourceFile` to SWITCHtoolbox.
-///
-/// If `filename` is not provided the `sourceFile`'s file name will be used.
-///
-/// If `folderID` is not provided the file will be uploaded to the root folder (folderID = 1).
-///
-/// Throws `SWITCHLoginFailedException` if the login to SWITCHtoolbox fails.
-///
-/// Throws `SocketException` if there is no internet connection or SWITCH cannot be reached.
-Future<void> uploadFileToSWITCHtoolbox(File sourceFile, {String filename, int folderID = 1}) async {
-
-  // get necessary cookies
-  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
-  final _mydmsSessionCookie = await _getMydmsSession(_shibsessionCookie);
-  final _cookieHeaderString = '${_mydmsSessionCookie.split(' ').first} ${_shibsessionCookie.split(' ').first}';
-
-  // upload file
-  final _req1 = http.MultipartRequest('POST', Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.AddDocument.php'))
-    ..headers['Cookie'] = _cookieHeaderString
-    ..files.add(await http.MultipartFile.fromPath('userfile[]', sourceFile.path))
-    ..fields.addAll({
-      'name': filename == null ? '${sourceFile.path.split('/').last}' : filename,
-      'folderid': '$folderID',
-      'sequence': '1',
-    });
-
-  final _resp2Stream = await _req1.send();
-  final _resp2 = await http.Response.fromStream(_resp2Stream);
-  // TODO: return something to indicate whether the upload was successful or not
-}
-
-/// Downloads the excel file from SWITCHtoolbox for the given [username].
-///
-/// @param [targetPath] Where to store the downloaded file. Must be a complete path (including the filename).
-///
-/// Throws `DocumentNotFoundException` if no password file is available for the
-/// given [username].
-Future<File> downloadExcelFile(String username, String targetPath) async {
-
-  // get necessary cookies
-  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
-  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
-
-  final documentName = await _getFirstDocumentNameForDocumentStartingWith(username, SWITCH_TOOLBOX_DATA_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
-  final switchDocumentId = await _getFirstDocumentIdForDocumentWithName(documentName, SWITCH_TOOLBOX_PASSWORD_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
-  final latestVersion = await _getLatestVersionOfDocument(switchDocumentId, _shibsessionCookie, _mydmssessionCookie);
-  final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=$switchDocumentId&version=$latestVersion';
-  final downloadUri = Uri.parse(absoluteLink);
-
-  // download file
-  final resp = await http.get(downloadUri,
-    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
-  );
-
-  // store file in database directory
-  final excelFile = File(targetPath);
-  return await excelFile.writeAsBytes(resp.bodyBytes, flush: true);
-}
-
-/// Downloads the latest backup file that matches the loginData from SWITCHtoolbox.
-/// Returns null if no matching backup is found.
-///
-/// @param [targetPath] Where to store the downloaded file. Must be a complete path (including the filename).
-///
-/// Throws `DocumentNotFoundException` if no backup is available for the loginData.
-Future<File> downloadLatestBackup(String username, String targetPath) async {
-  
-  // get necessary cookies
-  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
-  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
-
-  final documentName = await _getFirstDocumentNameForDocumentStartingWith(username, SWITCH_TOOLBOX_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
-  final switchDocumentId = await _getFirstDocumentIdForDocumentWithName(documentName, SWITCH_TOOLBOX_BACKUP_FOLDER_ID, _shibsessionCookie, _mydmssessionCookie);
-  final latestVersion = await _getLatestVersionOfDocument(switchDocumentId, _shibsessionCookie, _mydmssessionCookie);
-  final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=$switchDocumentId&version=$latestVersion';
-  final downloadUri = Uri.parse(absoluteLink);
-
-  // download file
-  final resp = await http.get(downloadUri,
-    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
-  );
-
-  // store file in database directory
-  final backupFile = File(targetPath);
-  return await backupFile.writeAsBytes(resp.bodyBytes, flush: true);
-}
-
-/// Uploads a new version of the document with name `sourceFile` on SWITCHtoolbox.
-/// Update only works if a document with the name `documentName` is already in the specified folder on SWITCHtoolbox.
-///
-/// If `folderID` is not provided the update will be attempted in the root folder (folderId = 1).
-///
-/// Throws `SWITCHLoginFailedException` if the login to SWITCHtoolbox fails.
-/// 
-/// Throws `DocumentNotFoundException` if no matching document was found.
-Future<void> updateFileOnSWITCHtoolbox(File sourceFile, String documentName, {int folderId = 1}) async {
-  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
-  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
-  final _cookieHeaderString = '${_mydmssessionCookie.split(' ').first} ${_shibsessionCookie.split(' ').first}';
-  final docId = await _getFirstDocumentIdForDocumentWithName(documentName, folderId, _shibsessionCookie, _mydmssessionCookie);
-
-  // upload file
-  final _req1 = http.MultipartRequest('POST', Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.UpdateDocument.php'))
-    ..headers['Cookie'] = _cookieHeaderString
-    ..files.add(await http.MultipartFile.fromPath('userfile', sourceFile.path))
-    ..fields.addAll({
-      'documentid': '$docId',
-//      'expires': 'false',
-    });
-
-  final _resp2Stream = await _req1.send();
-  final _resp2 = await http.Response.fromStream(_resp2Stream);
-  // TODO: return something to indicate whether the upload was successful or not
-}
-
-/// Finds the full name of the document that starts with [startsWith] in the folder [folderId].
-/// If there are several documents with a matching start string, it will return the name of the first one.
-///
-/// Throws [DocumentNotFoundException] if no matching document was found.
-Future<String> _getFirstDocumentNameForDocumentStartingWith(String startsWith, int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
-  // get list of files
-  final resp = await http.get(
-    Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/out/out.ViewFolder.php?folderid=$folderId'),
-    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
-  );
-
-  // parse html
-  final _doc = parse(resp.body);
-  final _tableBody = _doc.querySelector('table[class="folderView"] > tbody');
-  if (_tableBody == null) {
-    // no documents are in SWITCHtoolbox
-    throw DocumentNotFoundException();
-  }
-  final aElements = _tableBody.getElementsByTagName('a');
-
-  // find first matching document
-  for (final a in aElements) {
-    final linkText = a.text;
-    if (linkText.startsWith(startsWith)) {
-      return linkText;
-    }
-  }
-  // no matching document found
-  throw DocumentNotFoundException();
-}
-
-/// Finds the document id of a document that matches `documentName` in the folder `folderId`.
-/// If there are several documents with a matching name, it will return the id of the first one.
-///
-/// Throws 'DocumentNotFoundException' if no matching document was found.
-Future<int> _getFirstDocumentIdForDocumentWithName(String documentName, int folderId, String _shibsessionCookie, String _mydmssessionCookie) async {
-
-  // get list of files
-  final resp = await http.get(
-    Uri.parse('https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/out/out.ViewFolder.php?folderid=$folderId'),
-    headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'},
-  );
-
-  // parse html
-  final _doc = parse(resp.body);
-  final _tableBody = _doc.querySelector('table[class="folderView"] > tbody');
-  if (_tableBody == null) {
-    // no documents are in SWITCHtoolbox
-    throw DocumentNotFoundException();
-  }
-  final aElements = _tableBody.getElementsByTagName('a');
-
-  // find first matching document
-  for (final a in aElements) {
-    final linkText = a.text;
-    if (linkText == documentName) {
-      final relativeLink = a.attributes['href'];
-      final relativeUri = Uri.parse(relativeLink);
-      final switchDocumentId = relativeUri.queryParameters['documentid'];
-      return int.parse(switchDocumentId);
-    }
-  }
-  // no matching document found
-  throw DocumentNotFoundException();
 }
 
 /// Finds the latest version of the document with `documentId`.
@@ -409,9 +405,14 @@ class SwitchDoc {
   /// Constructor
   SwitchDoc({this.docName, this.docId, this.containingFolder, this.versions});
 
+  /// The name as it appears in SWITCHtoolbox. This is derived from the a (html)
+  /// element.
   String docName;
+  /// SWITCHtoolbox identifier. Uniquely identifies documents on SWITCHtoolbox.
   int docId;
+  /// SWITCHtoolbox folder ID in which this document is contained.
   int containingFolder;
+  /// All versions that are available for this document.
   List<int> versions;
 
   @override
