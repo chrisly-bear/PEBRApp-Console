@@ -1,9 +1,16 @@
-# PEBRApp Console
+# pebrapp_console
 
-This is an administrative tool to help manage the PEBRApp users and data (see [PEBRApp repository](https://github.com/chrisly-bear/PEBRApp)). It is designed for desktop, but there's also a mobile variant on the `mobile` branch.
+A new Flutter project.
 
-## Building and Running
+## Getting Started
 
-If you're getting a build error when running on macOS, run `pod install` from the `macos/` directory.
+This project is a starting point for a Flutter application.
 
-See [flutter-desktop-embedding README](https://github.com/google/flutter-desktop-embedding/blob/master/README.md) and [Flutter Wiki](https://github.com/flutter/flutter/wiki/Desktop-shells) for more details.
+A few resources to get you started if this is your first Flutter project:
+
+- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+
+For help getting started with Flutter, view our
+[online documentation](https://flutter.dev/docs), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

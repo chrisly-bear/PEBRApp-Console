@@ -1,4 +1,4 @@
-package com.example.pebrapp_console_mobile;
+package com.example.pebrapp_console;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

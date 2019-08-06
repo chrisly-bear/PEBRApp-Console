@@ -27,12 +27,6 @@
 .packages
 .pub-cache/
 .pub/
-# Since the current expectation is that clients are using Flutter head,
-# and Dart SDK changes unlock dependencies, pubspec.lock isn't useful.
-# Ignore it since it just creates noise. When there's a system in place
-# for versioning this project relative to Flutter, remove this.
-pubspec.lock
-flutter_export_environment.sh
 /build/
 
 # Android related
@@ -76,6 +70,3 @@ flutter_export_environment.sh
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
-plugins/file_chooser/macos/Flutter/ephemeral/Flutter-Generated.xcconfig
-plugins/file_chooser/macos/Flutter/ephemeral/flutter_export_environment.sh
-Flutter-Generated.xcconfig
