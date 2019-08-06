@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pebrapp_console/user.dart';
 import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
 
@@ -77,8 +81,42 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  void _downloadExcel() {
-    // TODO: ios/android impelementation
+  void _downloadExcel() async {
+    setState(() {
+      _downloadingExcel = true;
+    });
+    final tempDir = await getTemporaryDirectory();
+    try {
+      await tempDir.delete(recursive: true);
+    } on FileSystemException catch (e) {
+      print('FileSystemException caught (probably because temp dir could not be deleted: $e');
+    }
+    downloadLatestExcelFiles([widget._user], tempDir.path).listen((progress) async {
+      print('excel download status: ${(progress*100).round()}%');
+      if (progress >= 1.0) {
+        Scaffold.of(_context).showSnackBar(SnackBar(content: Text('$_numExcelFiles Excel file${_numExcelFiles > 1 ? 's' : ''} downloaded')));
+        setState(() {
+          _downloadingExcel = false;
+        });
+        final filesInTempDir = await tempDir.list(recursive: false, followLinks: false).where((entity) => entity is File).toList();
+        if (filesInTempDir.isEmpty) {
+          Scaffold.of(_context).showSnackBar(SnackBar(content: Text('Something went wrong 🤭')));
+        } else {
+          final filesAsBytes = <String, List<int>>{};
+          for (final File f in filesInTempDir) {
+            final filename = basename(f.path);
+            final bytes = await f.readAsBytes();
+            filesAsBytes[filename] = bytes;
+          }
+          await Share.files('PEBRApp Data', filesAsBytes, '*/*', text: 'PEBRApp Excel files downloaded from SWITCHtoolbox');
+        }
+      }
+    }, onError: (error) {
+      Scaffold.of(_context).showSnackBar(SnackBar(content: Text('An error occurred during the download 😢')));
+      setState(() {
+        _downloadingExcel = false;
+      });
+    });
   }
 
 }

@@ -12,8 +12,9 @@ dependencies:
   html: ^0.13.4+1
   http: ^0.12.0+2
   path: ^1.6.2
-
   cupertino_icons: ^0.1.0
+  esys_flutter_share: ^1.0.2
+  path_provider: ^1.2.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.7.0
