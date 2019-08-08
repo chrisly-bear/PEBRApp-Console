@@ -86,24 +86,20 @@ class _UserScreenState extends State<UserScreen> {
       _downloadingExcel = true;
     });
     final tempDir = await getTemporaryDirectory();
-    try {
-      await tempDir.delete(recursive: true);
-    } on FileSystemException catch (e) {
-      print('FileSystemException caught (probably because temp dir could not be deleted: $e');
-    }
-    downloadLatestExcelFiles([widget._user], tempDir.path).listen((progress) async {
+    final targetDir = Directory(join(tempDir.path, 'PEBRApp-data'));
+    downloadLatestExcelFiles([widget._user], targetDir.path).listen((progress) async {
       print('excel download status: ${(progress*100).round()}%');
       if (progress >= 1.0) {
         Scaffold.of(_context).showSnackBar(SnackBar(content: Text('$_numExcelFiles Excel file${_numExcelFiles > 1 ? 's' : ''} downloaded')));
         setState(() {
           _downloadingExcel = false;
         });
-        final filesInTempDir = await tempDir.list(recursive: false, followLinks: false).where((entity) => entity is File).toList();
-        if (filesInTempDir.isEmpty) {
+        final filesInTargetDir = await targetDir.list(recursive: false, followLinks: false).where((entity) => entity is File).toList();
+        if (filesInTargetDir.isEmpty) {
           Scaffold.of(_context).showSnackBar(SnackBar(content: Text('Something went wrong 🤭')));
         } else {
           final filesAsBytes = <String, List<int>>{};
-          for (final File f in filesInTempDir) {
+          for (final File f in filesInTargetDir) {
             final filename = basename(f.path);
             final bytes = await f.readAsBytes();
             filesAsBytes[filename] = bytes;
