@@ -96,7 +96,7 @@ class _UserScreenState extends State<UserScreen> {
         });
         final filesInTargetDir = await targetDir.list(recursive: false, followLinks: false).where((entity) => entity is File).toList();
         if (filesInTargetDir.isEmpty) {
-          Scaffold.of(_context).showSnackBar(SnackBar(content: Text('Something went wrong 🤭')));
+          Scaffold.of(_context).showSnackBar(SnackBar(content: Text('No Excel files found. 😞')));
         } else {
           final filesAsBytes = <String, List<int>>{};
           for (final File f in filesInTargetDir) {

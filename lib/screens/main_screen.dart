@@ -430,20 +430,25 @@ class _MainScreenState extends State<MainScreen> {
         _networkProgress = progress;
       });
       if (progress >= 1.0) {
+        await Future.delayed(Duration(seconds: 1));
         setState(() {
           _networkProgress = -1.0; // tell the UI processing is done
         });
-        final filesInTargetDir = await targetDir.list(recursive: false, followLinks: false).where((entity) => entity is File).toList();
-        if (filesInTargetDir.isEmpty) {
-          Scaffold.of(_context).showSnackBar(SnackBar(content: Text('Something went wrong 🤭')));
-        } else {
-          final filesAsBytes = <String, List<int>>{};
-          for (final File f in filesInTargetDir) {
-            final filename = p.basename(f.path);
-            final bytes = await f.readAsBytes();
-            filesAsBytes[filename] = bytes;
+        if (await targetDir.exists()) {
+          final filesInTargetDir = await targetDir.list(recursive: false, followLinks: false).where((entity) => entity is File).toList();
+          if (filesInTargetDir.isEmpty) {
+            Scaffold.of(_context).showSnackBar(SnackBar(content: Text('No Excel files found. 😞')));
+          } else {
+            final filesAsBytes = <String, List<int>>{};
+            for (final File f in filesInTargetDir) {
+              final filename = p.basename(f.path);
+              final bytes = await f.readAsBytes();
+              filesAsBytes[filename] = bytes;
+            }
+            await Share.files('PEBRApp Data', filesAsBytes, '*/*', text: 'PEBRApp Excel files downloaded from SWITCHtoolbox');
           }
-          await Share.files('PEBRApp Data', filesAsBytes, '*/*', text: 'PEBRApp Excel files downloaded from SWITCHtoolbox');
+        } else {
+          Scaffold.of(_context).showSnackBar(SnackBar(content: Text('No Excel files found. 😞')));
         }
       }
     }, onError: (error) {
