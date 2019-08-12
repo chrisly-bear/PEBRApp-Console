@@ -430,13 +430,12 @@ class _MainScreenState extends State<MainScreen> {
         _networkProgress = progress;
       });
       if (progress >= 1.0) {
-        await Future.delayed(Duration(seconds: 1));
-        setState(() {
-          _networkProgress = -1.0; // tell the UI processing is done
-        });
         if (await targetDir.exists()) {
           final filesInTargetDir = await targetDir.list(recursive: false, followLinks: false).where((entity) => entity is File).toList();
           if (filesInTargetDir.isEmpty) {
+            setState(() {
+              _networkProgress = -1.0; // tell the UI processing is done
+            });
             Scaffold.of(_context).showSnackBar(SnackBar(content: Text('No Excel files found. 😞')));
           } else {
             final filesAsBytes = <String, List<int>>{};
@@ -445,9 +444,16 @@ class _MainScreenState extends State<MainScreen> {
               final bytes = await f.readAsBytes();
               filesAsBytes[filename] = bytes;
             }
+            await Future.delayed(Duration(seconds: 1));
             await Share.files('PEBRApp Data', filesAsBytes, '*/*', text: 'PEBRApp Excel files downloaded from SWITCHtoolbox');
+            setState(() {
+              _networkProgress = -1.0; // tell the UI processing is done
+            });
           }
         } else {
+          setState(() {
+            _networkProgress = -1.0; // tell the UI processing is done
+          });
           Scaffold.of(_context).showSnackBar(SnackBar(content: Text('No Excel files found. 😞')));
         }
       }

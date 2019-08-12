@@ -77,6 +77,12 @@ Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) asy
   // start with 0%
   yield 0.0;
 
+  final targetDir = Directory(targetPath);
+  if (await targetDir.exists()) {
+    await targetDir.delete(recursive: true);
+  }
+  await targetDir.create();
+
   var totalFiles = 0;
   for (final u in users) {
     totalFiles += u.dataFiles.length;
@@ -85,34 +91,28 @@ Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) asy
   if (totalFiles == 0) {
     // no files to download, yield 100% status
     yield 1.0;
-  }
+  } else {
+    // get necessary cookies
+    final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+    final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
 
-  // get necessary cookies
-  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
-  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
+    var currentFile = 1;
+    for (final user in users) {
+      for (final excelSwitchDoc in user.dataFiles) {
+        final latestVersion = await _getLatestVersionOfDocument(excelSwitchDoc.docId, _shibsessionCookie, _mydmssessionCookie);
+        final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=${excelSwitchDoc.docId}&version=$latestVersion';
+        final downloadUri = Uri.parse(absoluteLink);
 
-  final targetDir = Directory(targetPath);
-  if (await targetDir.exists()) {
-    await targetDir.delete(recursive: true);
-  }
-  await targetDir.create();
+        // download file
+        final resp = await http.get(downloadUri, headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'});
+        final filename = resp.headers['content-disposition'].split('"')[1];
 
-  var currentFile = 1;
-  for (final user in users) {
-    for (final excelSwitchDoc in user.dataFiles) {
-      final latestVersion = await _getLatestVersionOfDocument(excelSwitchDoc.docId, _shibsessionCookie, _mydmssessionCookie);
-      final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=${excelSwitchDoc.docId}&version=$latestVersion';
-      final downloadUri = Uri.parse(absoluteLink);
-
-      // download file
-      final resp = await http.get(downloadUri, headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'});
-      final filename = resp.headers['content-disposition'].split('"')[1];
-
-      // store file in target directory
-      final fullPath = join(targetPath, '${currentFile}_${user.username}_v${latestVersion}_$filename');
-      final excelFile = File(fullPath);
-      await excelFile.writeAsBytes(resp.bodyBytes, flush: true);
-      yield currentFile++ / totalFiles;
+        // store file in target directory
+        final fullPath = join(targetPath, '${currentFile}_${user.username}_v${latestVersion}_$filename');
+        final excelFile = File(fullPath);
+        await excelFile.writeAsBytes(resp.bodyBytes, flush: true);
+        yield currentFile++ / totalFiles;
+      }
     }
   }
 }
