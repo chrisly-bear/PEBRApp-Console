@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:pebrapp_console/bloc.dart';
 import 'package:pebrapp_console/exceptions.dart';
 import 'package:pebrapp_console/screens/user_screen.dart';
@@ -16,6 +19,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
 
+  BuildContext _context;
   bool _isLoading = true;
   List<User> _pebraUsers;
   Map<User, bool> _selectedUsers = {};
@@ -98,7 +102,13 @@ class _MainScreenState extends State<MainScreen> {
                 ),
           ],
         ),
-        body: _buildBody(context),
+        body: Builder(
+          // create an inner BuildContext to be able to show SnackBars
+          builder: (context) {
+            _context = context;
+            return _buildBody();
+          },
+        ),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: (!_areUsersSelected || _networkProcessing || _hasError) ? [] : [
@@ -130,7 +140,7 @@ class _MainScreenState extends State<MainScreen> {
       );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody() {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator());
     }
@@ -150,10 +160,10 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ));
     }
-    return _buildUserList(context);
+    return _buildUserList();
   }
   
-  Widget _buildUserList(BuildContext context) {
+  Widget _buildUserList() {
     final _userCards = _pebraUsers.map((pebraUser) {
       return Card(
         elevation: 2.0,
@@ -173,7 +183,7 @@ class _MainScreenState extends State<MainScreen> {
           title: Text(pebraUser.username),
           selected: _selectedUsers[pebraUser] ?? false,
           onTap: !_selectMode
-            ? () { _pushUserScreen(pebraUser, context); }
+            ? () { _pushUserScreen(pebraUser); }
             : () {
               setState(() {
                 _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
@@ -197,8 +207,8 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  void _pushUserScreen(User user, BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => UserScreen(user)));
+  void _pushUserScreen(User user) {
+    Navigator.push(_context, MaterialPageRoute(builder: (context) => UserScreen(user)));
   }
 
   void _selectAllUsers() {
@@ -227,7 +237,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _deleteSelection() async {
-    await showDialog(context: context, builder: (context) {
+    await showDialog(context: _context, builder: (context) {
       final selectedList = _selectedUsersList.map((u) {
         return Padding(
           padding: const EdgeInsets.only(top: 5.0),
@@ -256,13 +266,13 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         actions: [
-          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
+          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(_context); },),
           RaisedButton(
             child: Text('Delete (${_selectedUsersList.length})'),
-            color: Theme.of(context).buttonTheme.colorScheme.error,
-            textColor: Theme.of(context).buttonTheme.colorScheme.onError,
+            color: Theme.of(_context).buttonTheme.colorScheme.error,
+            textColor: Theme.of(_context).buttonTheme.colorScheme.onError,
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(_context);
               deleteUsers(_selectedUsersList).listen((progress) {
                 print('user deletion status: ${(progress*100).round()}%');
                 setState(() {
@@ -290,7 +300,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _archiveSelection() async {
-    await showDialog(context: context, builder: (context) {
+    await showDialog(context: _context, builder: (context) {
       final selectedList = _selectedUsersList.map((u) {
         return Padding(
           padding: const EdgeInsets.only(top: 5.0),
@@ -318,12 +328,12 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         actions: [
-          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
+          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(_context); },),
           RaisedButton(
             child: Text('Archive (${_selectedUsersList.length})'),
-            textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
+            textColor: Theme.of(_context).buttonTheme.colorScheme.onPrimary,
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(_context);
               archiveUsers(_selectedUsersList).listen((progress) {
                 print('user archiving status: ${(progress*100).round()}%');
                 setState(() {
@@ -351,7 +361,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _resetPinForSelection() async {
-    await showDialog(context: context, builder: (context) {
+    await showDialog(context: _context, builder: (context) {
       final selectedList = _selectedUsersList.map((u) {
         return Padding(
           padding: const EdgeInsets.only(top: 5.0),
@@ -379,12 +389,12 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         actions: [
-          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
+          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(_context); },),
           RaisedButton(
             child: Text('Reset PIN (${_selectedUsersList.length})'),
-            textColor: Theme.of(context).buttonTheme.colorScheme.onPrimary,
+            textColor: Theme.of(_context).buttonTheme.colorScheme.onPrimary,
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(_context);
               resetPIN(_selectedUsersList).listen((progress) {
                 print('user PIN resetting status: ${(progress*100).round()}%');
                 setState(() {
@@ -411,8 +421,37 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _downloadExcelForSelection() {
-    // TODO: ios/android impelementation
+  void _downloadExcelForSelection() async {
+    final tempDir = await getTemporaryDirectory();
+    final targetDir = Directory(p.join(tempDir.path, 'PEBRApp-data'));
+    downloadLatestExcelFiles(_selectedUsersList, targetDir.path).listen((progress) async {
+      print('excel download status: ${(progress*100).round()}%');
+      setState(() {
+        _networkProgress = progress;
+      });
+      if (progress >= 1.0) {
+        setState(() {
+          _networkProgress = -1.0; // tell the UI processing is done
+        });
+        final filesInTargetDir = await targetDir.list(recursive: false, followLinks: false).where((entity) => entity is File).toList();
+        if (filesInTargetDir.isEmpty) {
+          Scaffold.of(_context).showSnackBar(SnackBar(content: Text('Something went wrong 🤭')));
+        } else {
+          final filesAsBytes = <String, List<int>>{};
+          for (final File f in filesInTargetDir) {
+            final filename = p.basename(f.path);
+            final bytes = await f.readAsBytes();
+            filesAsBytes[filename] = bytes;
+          }
+          await Share.files('PEBRApp Data', filesAsBytes, '*/*', text: 'PEBRApp Excel files downloaded from SWITCHtoolbox');
+        }
+      }
+    }, onError: (error) {
+      setState(() {
+        _networkProgress = -1.0;
+        _handleException(error);
+      });
+    });
   }
 
   Widget _popupMenu() {
@@ -426,7 +465,7 @@ class _MainScreenState extends State<MainScreen> {
             _selectAllUsers();
             break;
           case 'Change Theme':
-            _showThemeDialog(context);
+            _showThemeDialog();
             break;
           default:
         }
@@ -442,9 +481,9 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  void _showThemeDialog(BuildContext context) {
+  void _showThemeDialog() {
     showDialog(
-      context: context,
+      context: _context,
       builder: (context) {
         return AlertDialog(
           title: Text('Change Theme'),
@@ -468,7 +507,7 @@ class _MainScreenState extends State<MainScreen> {
           actions: <Widget>[
             FlatButton(
               child: Text('Close'),
-              onPressed: () { Navigator.of(context).pop(); },
+              onPressed: () { Navigator.of(_context).pop(); },
             )
           ],
         );
