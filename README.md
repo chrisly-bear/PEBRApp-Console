@@ -1,16 +1,49 @@
 # PEBRApp Console (mobile)
 
+![logo](logo.png)
+
 This is an administrative tool to help manage the PEBRApp users and data (see [PEBRApp repository](https://github.com/chrisly-bear/PEBRApp)). This is the mobile version, there is also a desktop version on the `desktop` branch.
 
-## Getting Started
+![screenshot](screenshot.png)
 
-This project is a starting point for a Flutter application.
+## Configure
 
-A few resources to get you started if this is your first Flutter project:
+The app accesses the data on [SWITCHtoolbox](https://toolbox.switch.ch). You need to set the proper values for the variables in `lib/config/switch_config.dart` for the app to work.
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## Build and Run
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The app is built with Flutter, Google's cross-platform UI toolkit. To build and run the app, you need to have the Flutter SDK installed (see https://flutter.dev/docs/get-started/install). Then run the app with:
+
+```bash
+flutter run
+```
+
+If you want to specify a device to run the app on (check devices with `flutter devices`) use the `-d` argument:
+
+```bash
+# runs the app on the Android emulator with ID 5554
+flutter run -d emulator-5554
+```
+
+## Release
+
+To make a deployable apk file, simply run:
+
+```bash
+flutter build apk
+```
+
+You may want to follow the steps at https://flutter.dev/docs/deployment/android#signing-the-app to create a signed apk. Also, to reduce the size of the apk, you can build it specifically for one architecture (such as ARM) by running:
+
+```bash
+# creates a smaller apk which runs on ARM devices only
+flutter build apk --target-platform android-arm --split-per-abi
+```
+
+You can build for other target platforms by using one (or several) of `android-arm64`, `android-x86`, `android-x64` as the `--target-platform` parameter.
+
+## License
+
+This project is licensed under the MIT license (see the [LICENSE](LICENSE) file for more information).
+
+The app logo is exempt from this license and is **under copyright by Technify** (http://technifyls.com/).
