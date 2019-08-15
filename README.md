@@ -1,3 +1,5 @@
+[![license](https://img.shields.io/github/license/chrisly-bear/PEBRApp-Console)](https://github.com/chrisly-bear/PEBRApp-Console/blob/mobile/LICENSE)
+
 # PEBRApp Console (mobile)
 
 ![logo](logo.png)
