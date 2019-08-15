@@ -4,7 +4,7 @@
 
 This is an administrative tool to help manage the PEBRApp users and data (see [PEBRApp repository](https://github.com/chrisly-bear/PEBRApp)). It is designed for desktop, but there's also a mobile variant on the `mobile` branch.
 
-![screenshot light](screenshot-light.png) ![screenshot dark](screenshot-dark.png)
+![screenshot](screenshot.png)
 
 ## Configure
 
