@@ -19,3 +19,4 @@ Flutter-Generated.xcconfig
 PEBRApp-Console.iml
 macos/Podfile.lock
 macos/Flutter/GeneratedPluginRegistrant.swift
+.flutter-plugins-dependencies
