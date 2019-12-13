@@ -79,30 +79,27 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   void _downloadExcel() {
-    showSavePanel(
-      (result, paths) {
-        if (result == FileChooserResult.ok) {
-          setState(() {
-            _downloadingExcel = true;
-          });
-          downloadLatestExcelFiles([widget._user], paths.first).listen((progress) {
-            print('excel download status: ${(progress*100).round()}%');
-            if (progress >= 1.0) {
-              Scaffold.of(_context).showSnackBar(SnackBar(content: Text('$_numExcelFiles Excel file${_numExcelFiles > 1 ? 's' : ''} downloaded')));
-              setState(() {
-                _downloadingExcel = false;
-              });
-            }
-          }, onError: (error) {
-            Scaffold.of(_context).showSnackBar(SnackBar(content: Text('An error occurred during the download 😢')));
+    showSavePanel(suggestedFileName: 'PEBRApp-data-${widget._user.username}').then((result) {
+      if (!result.canceled) {
+        setState(() {
+          _downloadingExcel = true;
+        });
+        downloadLatestExcelFiles([widget._user], result.paths.first).listen((progress) {
+          print('excel download status: ${(progress*100).round()}%');
+          if (progress >= 1.0) {
+            Scaffold.of(_context).showSnackBar(SnackBar(content: Text('$_numExcelFiles Excel file${_numExcelFiles > 1 ? 's' : ''} downloaded')));
             setState(() {
               _downloadingExcel = false;
             });
+          }
+        }, onError: (error) {
+          Scaffold.of(_context).showSnackBar(SnackBar(content: Text('An error occurred during the download 😢')));
+          setState(() {
+            _downloadingExcel = false;
           });
-        }
-      },
-      suggestedFileName: 'PEBRApp-data-${widget._user.username}',
-    );
+        });
+      }
+    });
   }
 
 }

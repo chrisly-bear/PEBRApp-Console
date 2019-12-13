@@ -413,31 +413,28 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _downloadExcelForSelection() {
-    showSavePanel(
-      (result, paths) {
-        if (result == FileChooserResult.ok) {
-          downloadLatestExcelFiles(_selectedUsersList, paths.first).listen((progress) {
-            print('excel download status: ${(progress*100).round()}%');
-            setState(() {
-              _networkProgress = progress;
-            });
-            if (progress >= 1.0) {
-              Future.delayed(Duration(seconds: 1)).then((dynamic _) {
-                setState(() {
-                  _networkProgress = -1.0; // tell the UI processing is done
-                });
-              });
-            }
-          }, onError: (error) {
-            setState(() {
-              _networkProgress = -1.0;
-              _handleException(error);
-            });
+    showSavePanel(suggestedFileName: 'PEBRApp-data').then((result) {
+      if (!result.canceled) {
+        downloadLatestExcelFiles(_selectedUsersList, result.paths.first).listen((progress) {
+          print('excel download status: ${(progress*100).round()}%');
+          setState(() {
+            _networkProgress = progress;
           });
-        }
-      },
-      suggestedFileName: 'PEBRApp-data',
-    );
+          if (progress >= 1.0) {
+            Future.delayed(Duration(seconds: 1)).then((dynamic _) {
+              setState(() {
+                _networkProgress = -1.0; // tell the UI processing is done
+              });
+            });
+          }
+        }, onError: (error) {
+          setState(() {
+            _networkProgress = -1.0;
+            _handleException(error);
+          });
+        });
+      }
+    });
   }
 
   Widget _popupMenu() {
