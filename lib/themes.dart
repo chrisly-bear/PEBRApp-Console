@@ -6,10 +6,8 @@ const Color _pebraPurpleDarker = Color(0xff001c29);
 const Color _pebraRed = Color(0xfff97263);
 
 /// Get light theme.
-ThemeData get lightTheme => ThemeData.light().copyWith(
-    textTheme: ThemeData.light().textTheme.apply(
-      fontFamily: 'Roboto',
-    ),
+ThemeData get lightTheme => ThemeData(
+    fontFamily: 'Roboto',
     primaryColor: _pebraPurple,
     // spinner & highlights
     accentColor: _pebraPurple,
