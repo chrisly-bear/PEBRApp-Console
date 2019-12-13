@@ -35,7 +35,7 @@ flutter run -d macOS
 
 If you're getting a build error when running on macOS, try running `pod install` from the `macos/` directory.
 
-The most recent version of Flutter on the master branch might be incompatible with the desktop embedding project files, which will lead to a build error. In that case, you can try to check out a specific commit of Flutter which used to work:
+Sometimes, newer versions of Flutter are incompatible with the desktop embedding project files, which can lead to build errors. In that case, you can try to check out a specific commit of Flutter which used to work (take a commit around the time when the desktop embedding files were last updated):
 
 ```bash
 # go to your Flutter SDK directory
@@ -50,7 +50,13 @@ flutter packages get
 
 ## Release
 
-At the time of writing, Flutter supports release builds for macOS. To build a release version of the app run `flutter build macos`. You will then find the app in the `build/macos/Build/Products/Release` directory.
+At the time of writing, Flutter supports release builds for macOS. To build a release version of the app run:
+
+```bash
+flutter build macos
+```
+
+You will then find the app in the `build/macos/Build/Products/Release/` directory.
 
 ## License
 
