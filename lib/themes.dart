@@ -1,10 +1,28 @@
 import 'package:flutter/material.dart';
 
+const Color _pebraPurple = Color(0xff004768);
+const Color _pebraRed = Color(0xfff97263);
+
 /// Get light theme.
 ThemeData get lightTheme => ThemeData.light().copyWith(
     textTheme: ThemeData.light().textTheme.apply(
       fontFamily: 'Roboto',
-    )
+    ),
+    primaryColor: _pebraPurple,
+    // spinner
+    accentColor: _pebraPurple,
+    // floating action button
+    floatingActionButtonTheme: ThemeData.light().floatingActionButtonTheme.copyWith(
+      backgroundColor: _pebraRed,
+    ),
+    // active checkboxes
+    toggleableActiveColor: _pebraPurple,
+    // dialog close button
+    buttonTheme: ThemeData.light().buttonTheme.copyWith(
+      colorScheme: ColorScheme.light().copyWith(
+        primary: _pebraPurple,
+      )
+    ),
 );
 
 /// Get dark theme.
