@@ -72,3 +72,9 @@ pubspec.lock
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 ios/Flutter/flutter_export_environment.sh
+ios/Build
+.flutter-plugins-dependencies
+Flutter.podspec
+GeneratedPluginRegistrant.swift
+Flutter-Generated.xcconfig
+flutter_export_environment.sh
