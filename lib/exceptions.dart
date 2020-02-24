@@ -1,10 +1,24 @@
 
-class DocumentNotFoundException implements Exception {}
+class PebraCloudAuthFailedException implements Exception {}
 
-class InvalidPINException implements Exception {}
+class HTTPStatusNotOKException implements Exception {
+  final message;
 
-class NoLoginDataException implements Exception {}
+  HTTPStatusNotOKException([this.message]);
 
-class NoPasswordFileException implements Exception {}
+  String toString() {
+    if (message == null) return "HTTPStatusNotOKException";
+    return message;
+  }
+}
 
-class SWITCHLoginFailedException implements Exception {}
+class NoExcelFileException implements Exception {
+  final username;
+
+  NoExcelFileException([this.username]);
+
+  String toString() {
+    if (username == null) return "NoExcelFileException";
+    return "NoExcelFileException: No Excel file found for user '$username'";
+  }
+}

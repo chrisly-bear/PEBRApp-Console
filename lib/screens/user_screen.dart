@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pebrapp_console/user.dart';
-import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
+import 'package:pebrapp_console/utils/pebracloud_utils.dart';
 
 /// User screen which shows all user related information and actions.
 class UserScreen extends StatefulWidget {
@@ -19,7 +19,6 @@ class _UserScreenState extends State<UserScreen> {
 
   BuildContext _context;
   bool _downloadingExcel = false;
-  int get _numExcelFiles => widget._user.dataFiles.length;
 
   @override
   Widget build(BuildContext context) {
@@ -38,41 +37,42 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildBody() {
-    const _lineHeight = 1.5;
-    return SingleChildScrollView(
+    return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.max,
           children: [
-            Text(
-              widget._user.username,
-              style: TextStyle(fontSize: 26.0, fontWeight: FontWeight.w600),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  widget._user.username,
+                  style: TextStyle(fontSize: 26.0, fontWeight: FontWeight.w600),
+                ),
+                SizedBox(height: 5.0),
+                Text(
+                  '${widget._user.firstname} ${widget._user.lastname}',
+                  style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w400),
+                ),
+              ],
             ),
-            SizedBox(height: 5.0),
-            Text(
-              '${widget._user.firstname} ${widget._user.lastname}',
-              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w400),
-            ),
-            SizedBox(height: 10.0),
-            Text('Excel Documents: $_numExcelFiles', style: TextStyle(height: _lineHeight)),
-            Text('Backup Documents: ${widget._user.backupFiles?.length}', style: TextStyle(height: _lineHeight)),
-            Text('PIN Code Documents: ${widget._user.passwordFiles?.length}', style: TextStyle(height: _lineHeight)),
-            SizedBox(height: 10.0),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.center,
               child: RaisedButton(
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     if (_downloadingExcel) SizedBox(child: CircularProgressIndicator(), height: 15.0, width: 15.0),
                     Text(
-                      'Download Excel File${_numExcelFiles > 1 ? 's' : ''}',
+                      'Download Excel File',
                       style: TextStyle(color: _downloadingExcel ? Colors.transparent : null),
                     ),
                   ],
                 ),
-                onPressed: _numExcelFiles == 0 ? null : _downloadExcel,
+                onPressed: _downloadExcel,
               ),
             ),
           ],
@@ -90,7 +90,7 @@ class _UserScreenState extends State<UserScreen> {
     downloadLatestExcelFiles([widget._user], targetDir.path).listen((progress) async {
       print('excel download status: ${(progress*100).round()}%');
       if (progress >= 1.0) {
-        Scaffold.of(_context).showSnackBar(SnackBar(content: Text('$_numExcelFiles Excel file${_numExcelFiles > 1 ? 's' : ''} downloaded')));
+        Scaffold.of(_context).showSnackBar(SnackBar(content: Text('Excel file downloaded')));
         setState(() {
           _downloadingExcel = false;
         });
