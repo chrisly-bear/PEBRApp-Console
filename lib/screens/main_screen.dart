@@ -112,25 +112,46 @@ class _MainScreenState extends State<MainScreen> {
             return _buildBody();
           },
         ),
-        floatingActionButton: Row(
+        floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: (!_areUsersSelected || _networkProcessing || _hasError) ? [] : [
-            FloatingActionButton(
-              onPressed: _archiveSelection,
-              tooltip: 'Archive Selected',
-              child: Icon(Icons.archive),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Text('Archive'),
+                SizedBox(width: 10),
+                FloatingActionButton(
+                  onPressed: _archiveSelection,
+                  tooltip: 'Archive Selected',
+                  child: Icon(Icons.archive),
+                ),
+              ],
             ),
-            SizedBox(width: 10.0),
-            FloatingActionButton(
-              onPressed: _resetPinForSelection,
-              tooltip: 'Reset PIN Code for Selected',
-              child: Icon(Icons.lock),
+            SizedBox(height: 10.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Text('Reset PIN'),
+                SizedBox(width: 10),
+                FloatingActionButton(
+                  onPressed: _resetPinForSelection,
+                  tooltip: 'Reset PIN Code for Selected',
+                  child: Icon(Icons.lock),
+                ),
+              ],
             ),
-            SizedBox(width: 10.0),
-            FloatingActionButton(
-              onPressed: _downloadExcelForSelection,
-              tooltip: 'Download Latest Excel Files for Selected',
-              child: Icon(Icons.file_download),
+            SizedBox(height: 10.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Text('Download Excel'),
+                SizedBox(width: 10),
+                FloatingActionButton(
+                  onPressed: _downloadExcelForSelection,
+                  tooltip: 'Download Latest Excel Files for Selected',
+                  child: Icon(Icons.file_download),
+                ),
+              ],
             ),
           ],
         ),
