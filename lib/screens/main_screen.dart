@@ -155,7 +155,7 @@ class _MainScreenState extends State<MainScreen> {
       );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(BuildContext _) {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator());
     }
