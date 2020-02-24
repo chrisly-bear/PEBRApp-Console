@@ -144,6 +144,7 @@ class _MainScreenState extends State<MainScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(_errorMessage, textAlign: TextAlign.center),
+          SizedBox(height: 10),
           RaisedButton(child: Text('Reload'), onPressed: _getUsersFromSwitch),
         ],
       ));
@@ -153,7 +154,14 @@ class _MainScreenState extends State<MainScreen> {
   
   Widget _buildUserList() {
     if (_pebraUsers.length == 0) {
-      return Center(child: Text('no PEBRApp users found'));
+      return Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('No PEBRApp users found'),
+          SizedBox(height: 10),
+          RaisedButton(child: Text('Reload'), onPressed: _getUsersFromSwitch),
+        ],
+      ));
     }
     final _userCards = _pebraUsers.map((pebraUser) {
       return Card(
