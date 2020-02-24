@@ -80,7 +80,7 @@ Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) asy
     }
 
     // store file in target directory
-    final fullPath = join(targetPath, '${currentFile}_${user.username}.xlsx');
+    final fullPath = join(targetPath, '${currentFile}_${user.username}_${user.firstname}_${user.lastname}.xlsx');
     final excelFile = File(fullPath);
     await excelFile.writeAsBytes(resp.bodyBytes, flush: true);
     yield currentFile++ / totalFiles;
