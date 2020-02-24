@@ -6,7 +6,7 @@ import 'package:pebrapp_console/exceptions.dart';
 import 'package:pebrapp_console/screens/user_screen.dart';
 import 'package:pebrapp_console/themes.dart' as t;
 import 'package:pebrapp_console/user.dart';
-import 'package:pebrapp_console/utils/switch_toolbox_utils.dart';
+import 'package:pebrapp_console/utils/pebracloud_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Main screen of the application. Shows a list of all PEBRApp users.
@@ -61,11 +61,14 @@ class _MainScreenState extends State<MainScreen> {
 
   void _handleException(e) {
     switch (e.runtimeType) {
-      case SWITCHLoginFailedException:
-        _errorMessage = 'Login to SWITCHtoolbox failed\n(wrong credentials?)';
+      case PebraCloudAuthFailedException:
+        _errorMessage = 'PEBRAcloud authentication failed. Contact the development team.';
         break;
       case SocketException:
-        _errorMessage = 'Connection to SWITCHtoolbox failed\n(no internet connection?)';
+        _errorMessage = 'Connection to PEBRAcloud failed\n(no internet connection?)';
+        break;
+      case NoExcelFileException:
+        _errorMessage = 'No Excel file found for user \'${e.username}\'';
         break;
       default:
         _errorMessage = 'An unknown error occurred:\n${e.toString().isEmpty ? e.runtimeType : e.toString()}';
@@ -103,12 +106,6 @@ class _MainScreenState extends State<MainScreen> {
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: (!_areUsersSelected || _networkProcessing || _hasError) ? [] : [
-            FloatingActionButton(
-              onPressed: _deleteSelection,
-              tooltip: 'Delete Selected',
-              child: Icon(Icons.delete),
-            ),
-            SizedBox(width: 10.0),
             FloatingActionButton(
               onPressed: _archiveSelection,
               tooltip: 'Archive Selected',
@@ -154,7 +151,10 @@ class _MainScreenState extends State<MainScreen> {
     return _buildUserList(context);
   }
   
-  Widget _buildUserList(BuildContext context) {
+  Widget _buildUserList() {
+    if (_pebraUsers.length == 0) {
+      return Center(child: Text('no PEBRApp users found'));
+    }
     final _userCards = _pebraUsers.map((pebraUser) {
       return Card(
         elevation: 2.0,
@@ -225,69 +225,6 @@ class _MainScreenState extends State<MainScreen> {
 
   bool get _areUsersSelected {
     return _selectedUsers.values.any((final val) => val);
-  }
-
-  void _deleteSelection() async {
-    await showDialog(context: context, builder: (context) {
-      final selectedList = _selectedUsersList.map((u) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 5.0),
-          child: Row(
-            children: [
-              Icon(Icons.arrow_right),
-              Text(u.username),
-            ],
-          ),
-        );
-      }).toList();
-      const spacing = 10.0;
-      return AlertDialog(
-        title: Text('Warning!'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text('This deletes all data associated with the selected users. This action cannot be undone!'),
-              SizedBox(height: spacing),
-              Text('Are you sure you want to delete the following users and all of their data?'),
-              SizedBox(height: spacing),
-              ...selectedList,
-            ],
-          ),
-        ),
-        actions: [
-          FlatButton(child: Text('Cancel'), onPressed: () { Navigator.pop(context); },),
-          RaisedButton(
-            child: Text('Delete (${_selectedUsersList.length})'),
-            color: Theme.of(context).buttonTheme.colorScheme.error,
-            textColor: Theme.of(context).buttonTheme.colorScheme.onError,
-            onPressed: () {
-              Navigator.pop(context);
-              deleteUsers(_selectedUsersList).listen((progress) {
-                print('user deletion status: ${(progress*100).round()}%');
-                setState(() {
-                  _networkProgress = progress;
-                });
-                if (progress >= 1.0) {
-                  Future.delayed(Duration(seconds: 1)).then((dynamic _) {
-                    setState(() {
-                      _networkProgress = -1.0; // tell the UI processing is done
-                    });
-                    _getUsersFromSwitch();
-                  });
-                }
-              }, onError: (error) {
-                setState(() {
-                  _networkProgress = -1.0;
-                  _handleException(error);
-                });
-              });
-            },
-          ),
-        ],
-      );
-    });
   }
 
   void _archiveSelection() async {
