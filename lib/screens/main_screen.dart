@@ -107,10 +107,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
         body: Builder(
           // create an inner BuildContext to be able to show SnackBars
-          builder: (context) {
-            _context = context;
-            return _buildBody();
-          },
+          builder: _buildBody,
         ),
         floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
