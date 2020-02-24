@@ -104,7 +104,9 @@ class _MainScreenState extends State<MainScreen> {
         ),
         body: Builder(
           // create an inner BuildContext to be able to show SnackBars
-          builder: _buildBody,
+          builder: (context) {
+            return _buildBody();
+          },
         ),
         floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -152,7 +154,7 @@ class _MainScreenState extends State<MainScreen> {
       );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody() {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator());
     }
