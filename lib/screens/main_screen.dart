@@ -173,7 +173,7 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ));
     }
-    return _buildUserList(context);
+    return _buildUserList();
   }
   
   Widget _buildUserList() {
