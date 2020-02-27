@@ -117,6 +117,56 @@ Stream<double> downloadLatestExcelFiles(List<User> users, String targetPath) asy
   }
 }
 
+/// Downloads the most recent version of the PIN files from SWITCHtoolbox for
+/// the given [users].
+///
+/// @param [targetPath] Where to store the downloaded files. WARNING: Directory
+/// will be erased if it already exists!
+Stream<double> downloadLatestPINFiles(List<User> users, String targetPath) async* {
+
+  // start with 0%
+  yield 0.0;
+
+  var totalFiles = 0;
+  for (final u in users) {
+    totalFiles += u.passwordFiles.length;
+  }
+
+  if (totalFiles == 0) {
+    // no files to download, yield 100% status
+    yield 1.0;
+  }
+
+  // get necessary cookies
+  final _shibsessionCookie = await _getShibSession(SWITCH_USERNAME, SWITCH_PASSWORD);
+  final _mydmssessionCookie = await _getMydmsSession(_shibsessionCookie);
+
+  final targetDir = Directory(targetPath);
+  if (await targetDir.exists()) {
+    await targetDir.delete(recursive: true);
+  }
+  await targetDir.create();
+
+  var currentFile = 1;
+  for (final user in users) {
+    for (final passwordSwitchDoc in user.passwordFiles) {
+      final latestVersion = await _getLatestVersionOfDocument(passwordSwitchDoc.docId, _shibsessionCookie, _mydmssessionCookie);
+      final absoluteLink = 'https://letodms.toolbox.switch.ch/$SWITCH_TOOLBOX_PROJECT/op/op.Download.php?documentid=${passwordSwitchDoc.docId}&version=$latestVersion';
+      final downloadUri = Uri.parse(absoluteLink);
+
+      // download file
+      final resp = await http.get(downloadUri, headers: {'Cookie': '$_shibsessionCookie; $_mydmssessionCookie'});
+      final filename = resp.headers['content-disposition'].split('"')[1];
+
+      // store file in target directory
+      final fullPath = join(targetPath, '${currentFile}_${user.username}_v${latestVersion}_$filename');
+      final passwordFile = File(fullPath);
+      await passwordFile.writeAsBytes(resp.bodyBytes, flush: true);
+      yield currentFile++ / totalFiles;
+    }
+  }
+}
+
 /// Moves all files associated with the given [users] to their corresponding
 /// archive folder on SWITCHtoolbox.
 Stream<double> archiveUsers(List<User> users) async* {

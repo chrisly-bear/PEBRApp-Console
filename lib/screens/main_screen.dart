@@ -126,6 +126,12 @@ class _MainScreenState extends State<MainScreen> {
               tooltip: 'Download Latest Excel Files for Selected',
               child: Icon(Icons.file_download),
             ),
+            SizedBox(width: 10.0),
+            FloatingActionButton(
+              onPressed: _downloadPINForSelection,
+              tooltip: 'Download Latest PIN Files for Selected',
+              child: Icon(Icons.file_download),
+            ),
           ],
         ),
       );
@@ -417,6 +423,31 @@ class _MainScreenState extends State<MainScreen> {
       if (!result.canceled) {
         downloadLatestExcelFiles(_selectedUsersList, result.paths.first).listen((progress) {
           print('excel download status: ${(progress*100).round()}%');
+          setState(() {
+            _networkProgress = progress;
+          });
+          if (progress >= 1.0) {
+            Future.delayed(Duration(seconds: 1)).then((dynamic _) {
+              setState(() {
+                _networkProgress = -1.0; // tell the UI processing is done
+              });
+            });
+          }
+        }, onError: (error) {
+          setState(() {
+            _networkProgress = -1.0;
+            _handleException(error);
+          });
+        });
+      }
+    });
+  }
+
+  void _downloadPINForSelection() {
+    showSavePanel(suggestedFileName: 'PEBRApp-pins').then((result) {
+      if (!result.canceled) {
+        downloadLatestPINFiles(_selectedUsersList, result.paths.first).listen((progress) {
+          print('PIN download status: ${(progress*100).round()}%');
           setState(() {
             _networkProgress = progress;
           });
