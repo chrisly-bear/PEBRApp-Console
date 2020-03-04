@@ -224,7 +224,7 @@ class _MainScreenState extends State<MainScreen> {
                   Text(
                     'last upload: ${pebraUser.lastUploadFormatted}',
                     style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyText1.color.withOpacity(0.3),
+                      color: Theme.of(_context).textTheme.body1.color.withOpacity(0.3),
                       fontSize: 12,
                     ),
                   ),
@@ -233,7 +233,7 @@ class _MainScreenState extends State<MainScreen> {
               isThreeLine: true,
               selected: _selectedUsers[pebraUser] ?? false,
               onTap: !_selectMode
-                ? () { _pushUserScreen(pebraUser, context); }
+                ? () { _pushUserScreen(pebraUser); }
                 : () {
                   setState(() {
                     _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
