@@ -204,8 +204,22 @@ class _MainScreenState extends State<MainScreen> {
             },
             value: _selectedUsers[pebraUser] ?? false,
           ),
-          subtitle: Text('${pebraUser.firstname} ${pebraUser.lastname}'),
           title: Text(pebraUser.username),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${pebraUser.firstname} ${pebraUser.lastname}'),
+              SizedBox(height: 8),
+              Text(
+                'last upload: ${pebraUser.lastUploadFormatted}',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyText1.color.withOpacity(0.3),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          isThreeLine: true,
           selected: _selectedUsers[pebraUser] ?? false,
           onTap: !_selectMode
             ? () { _pushUserScreen(pebraUser, context); }
