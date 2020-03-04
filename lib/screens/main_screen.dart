@@ -46,6 +46,7 @@ class _MainScreenState extends State<MainScreen> {
     });
     getAllPEBRAppUsers().then((result) {
       setState(() {
+        result.sort((u1, u2) => u1.firstname.toLowerCase().compareTo(u2.firstname.toLowerCase()));
         _pebraUsers = result;
         _errorMessage = '';
         _isLoading = false;
