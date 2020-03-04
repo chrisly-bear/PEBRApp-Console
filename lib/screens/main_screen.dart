@@ -194,8 +194,14 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 2.0,
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
-        child: ListTile(
-          leading: Icon(Icons.person),
+        child: Stack(
+          children: [
+            Container(height: 90, width: 60, color: pebraUser.highlightColor),
+            ListTile(
+          leading: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Icon(Icons.person)],
+          ),
           trailing: !_selectMode ? null : Checkbox(
             onChanged: (final value) {
               setState(() {
@@ -209,7 +215,7 @@ class _MainScreenState extends State<MainScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('${pebraUser.firstname} ${pebraUser.lastname}'),
-              SizedBox(height: 8),
+              SizedBox(height: 15),
               Text(
                 'last upload: ${pebraUser.lastUploadFormatted}',
                 style: TextStyle(
@@ -235,6 +241,7 @@ class _MainScreenState extends State<MainScreen> {
             });
           },
         ),
+        ]),
       );
     }).toList();
     return ListView(
