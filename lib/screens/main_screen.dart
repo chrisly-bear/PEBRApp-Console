@@ -199,50 +199,51 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             Container(height: 90, width: 60, color: pebraUser.highlightColor),
             ListTile(
-          leading: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [Icon(Icons.person)],
-          ),
-          trailing: !_selectMode ? null : Checkbox(
-            onChanged: (final value) {
-              setState(() {
-                _selectedUsers[pebraUser] = value;
-            });
-            },
-            value: _selectedUsers[pebraUser] ?? false,
-          ),
-          title: Text(pebraUser.username),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${pebraUser.firstname} ${pebraUser.lastname}'),
-              SizedBox(height: 15),
-              Text(
-                'last upload: ${pebraUser.lastUploadFormatted}',
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyText1.color.withOpacity(0.3),
-                  fontSize: 12,
-                ),
+              leading: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [Icon(Icons.person)],
               ),
-            ],
-          ),
-          isThreeLine: true,
-          selected: _selectedUsers[pebraUser] ?? false,
-          onTap: !_selectMode
-            ? () { _pushUserScreen(pebraUser, context); }
-            : () {
-              setState(() {
-                _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
-              });
-            },
-          onLongPress: _selectMode ? null : () {
-            setState(() {
-              _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
-              _selectMode = true;
-            });
-          },
+              trailing: !_selectMode ? null : Checkbox(
+                onChanged: (final value) {
+                  setState(() {
+                    _selectedUsers[pebraUser] = value;
+                });
+                },
+                value: _selectedUsers[pebraUser] ?? false,
+              ),
+              title: Text(pebraUser.username),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${pebraUser.firstname} ${pebraUser.lastname}'),
+                  SizedBox(height: 15),
+                  Text(
+                    'last upload: ${pebraUser.lastUploadFormatted}',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyText1.color.withOpacity(0.3),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              isThreeLine: true,
+              selected: _selectedUsers[pebraUser] ?? false,
+              onTap: !_selectMode
+                ? () { _pushUserScreen(pebraUser, context); }
+                : () {
+                  setState(() {
+                    _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
+                  });
+                },
+              onLongPress: _selectMode ? null : () {
+                setState(() {
+                  _selectedUsers[pebraUser] = !(_selectedUsers[pebraUser] ?? false);
+                  _selectMode = true;
+                });
+              },
+            ),
+          ],
         ),
-        ]),
       );
     }).toList();
     return ListView(
