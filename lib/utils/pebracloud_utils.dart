@@ -32,6 +32,7 @@ Future<List<User>> getAllPEBRAppUsers() async {
       username: u['username'],
       firstname: u['firstname'],
       lastname: u['lastname'],
+      lastUpload: DateTime.parse(u['last_upload']),
     ));
   }
   return users;
