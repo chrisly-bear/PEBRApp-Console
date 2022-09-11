@@ -1,16 +1,16 @@
 [![license](https://img.shields.io/github/license/chrisly-bear/PEBRApp-Console)](https://github.com/chrisly-bear/PEBRApp-Console/blob/mobile/LICENSE)
 
-# PEBRApp Console (mobile)
+# PEBRApp Console (desktop)
 
 ![logo](logo.png)
 
-This is an administrative tool to help manage the PEBRApp users and data (see [PEBRApp repository](https://github.com/chrisly-bear/PEBRApp)). This is the mobile version, there is also a desktop version on the `desktop` branch.
+This is an administrative tool to help manage the PEBRApp users and data (see [PEBRApp repository](https://github.com/chrisly-bear/PEBRApp)). This is the desktop version, there is also a mobile version on the `mobile` branch.
 
 ![screenshot](screenshot.png)
 
 ## Configure
 
-The app accesses the data on [SWITCHtoolbox](https://toolbox.switch.ch). You need to set the proper values for the variables in `lib/config/switch_config.dart` for the app to work.
+The app accesses the data on [PEBRAcloud](https://github.com/chrisly-bear/PEBRAcloud). You need to set the proper values for the variables in `lib/config/pebracloud_config.dart` for the app to work.
 
 ## Build and Run
 
