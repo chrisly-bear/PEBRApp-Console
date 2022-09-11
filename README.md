@@ -10,7 +10,7 @@ This is an administrative tool to help manage the PEBRApp users and data (see [P
 
 ## Configure
 
-The app accesses the data on [SWITCHtoolbox](https://toolbox.switch.ch). You need to set the proper values for the variables in `lib/config/switch_config.dart` for the app to work.
+The app accesses the data on [PEBRAcloud](https://github.com/chrisly-bear/PEBRAcloud). You need to set the proper values for the variables in `lib/config/pebracloud_config.dart` for the app to work.
 
 ## Build and Run
 
